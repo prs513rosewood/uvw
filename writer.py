@@ -15,7 +15,7 @@ class Component:
         parent_node.appendChild(self.node)
 
 
-    def register(self, name, attributes):
+    def register(self, name, attributes=dict()):
         """Register a sub-component"""
         sub_component = Component(name, self.node, self.document)
         setAttributes(sub_component.node, attributes)
