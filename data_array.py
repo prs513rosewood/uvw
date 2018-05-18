@@ -19,10 +19,12 @@ class DataArray:
 
         axes += spatial_axes
 
-        self.flat_data = np.ravel(np.transpose(self.data, axes=axes), order='F')
+        # Hopefully this is a view
+        self.flat_data = self.data.transpose(*axes).reshape(-1, order='F')
+
         self.attributes = {
             "type": str(self.flat_data.dtype).capitalize(),
-            "NumberOfComponents": nb_components
+            "NumberOfComponents": str(nb_components)
         }
 
     def __str__(self):

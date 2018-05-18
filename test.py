@@ -13,9 +13,10 @@ piece = writer.registerPiece({
 
 coordinates = piece.register('Coordinates')
 
-array = np.array([[0, 0, 0], [1, 1, 1]])
-print(type(array.dtype))
-data_array = DataArray(array, [ 1])
-print(data_array)
+array = np.array([[0, 0, 0], [1, 1, 1]], np.float64)
+data_array = DataArray(array, [1])
+
+coordinates.registerDataArray(data_array)
+coordinates.registerDataArray(data_array)
 
 print(writer)
