@@ -12,6 +12,7 @@ piece = writer.registerPiece({
 })
 
 coordinates = piece.register('Coordinates')
+setAttributes(coordinates.node, {"hi":"hello"})
 
 array = np.array([[0, 0, 0], [1, 1, 1]], np.float64)
 data_array = DataArray(array, [1])
