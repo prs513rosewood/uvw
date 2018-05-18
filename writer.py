@@ -1,11 +1,12 @@
 import xml.dom
 import xml.dom.minidom as dom
 
-import sys
+import base64
 
 def setAttributes(node, attributes):
     """Set attributes of a node"""
-    map(lambda x: node.setAttribute(*x), attributes.items())
+    for item in attributes.items():
+        node.setAttribute(*item)
 
 class Component:
     """Generic component class capable of registering sub-components"""
@@ -34,6 +35,7 @@ class Component:
             attributes['format'] = 'binary'
 
         setAttributes(array_component.node, attributes)
+        self.writer.append_data_arrays.append(data_array)
 
 
 class Writer:
@@ -47,6 +49,7 @@ class Writer:
         self.data_node = self.document.createElement(vtk_format)
         self.root.appendChild(self.data_node)
         self.offset = 0 # Global offset
+        self.append_data_arrays = []
 
     def setDataNodeAttributes(self, attributes):
         """Set attributes for the entire dataset"""
@@ -57,6 +60,18 @@ class Writer:
         piece = Component('Piece', self.data_node, self)
         setAttributes(piece.node, attributes)
         return piece
+
+    def registerAppend(self):
+        append_node = Component('AppendedData', self.root, self)
+        setAttributes(append_node.node, {'format': 'base64'})
+        self.root.appendChild(append_node.node)
+        data_str = b"_"
+
+        for data_array in self.append_data_arrays:
+            data_str += base64.b64encode(data_array.flat_data)
+
+        text = self.document.createTextNode(data_str.decode('ascii'))
+        append_node.node.appendChild(text)
 
     def __str__(self):
         """Print XML to string"""
