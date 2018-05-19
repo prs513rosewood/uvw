@@ -3,11 +3,19 @@ import xml.dom.minidom as dom
 import functools
 
 import base64
+import numpy as np
 
 def setAttributes(node, attributes):
     """Set attributes of a node"""
     for item in attributes.items():
         node.setAttribute(*item)
+
+def encodeArray(array):
+    # Mandatory number of bytes encoded as uint32
+    nbytes = array.nbytes
+    bytes = base64.b64encode(np.array([nbytes], dtype=np.uint32))
+    bytes += base64.b64encode(array)
+    return bytes
 
 class Component:
     """Generic component class capable of registering sub-components"""
@@ -25,18 +33,26 @@ class Component:
         return sub_component
 
     def registerDataArray(self, data_array, vtk_format='append'):
+        """Register a DataArray object"""
         array_component = Component('DataArray', self.node, self.writer)
         attributes = data_array.attributes
 
         attributes['format'] = vtk_format
         if vtk_format == 'append':
             attributes['offset'] = str(self.writer.offset)
-            self.writer.offset += data_array.flat_data.size
+            array = data_array.flat_data
+            self.writer.offset += array.nbytes
+            self.writer.offset += self.writer.size_indicator_bytes
             self.writer.append_data_arrays.append(data_array)
 
         elif vtk_format == 'ascii':
             data_as_str = functools.reduce(lambda x, y: x + str(y) + ' ', data_array.flat_data, "")
             array_component.node.appendChild(self.document.createTextNode(data_as_str))
+
+        elif vtk_format == 'binary':
+            array_component.node.appendChild(
+                self.document.createTextNode(
+                    encodeArray(data_array.flat_data).decode('ascii')))
             
 
         setAttributes(array_component.node, attributes)
@@ -53,6 +69,7 @@ class Writer:
         self.data_node = self.document.createElement(vtk_format)
         self.root.appendChild(self.data_node)
         self.offset = 0 # Global offset
+        self.size_indicator_bytes = np.dtype(np.uint32).itemsize
         self.append_data_arrays = []
 
     def setDataNodeAttributes(self, attributes):
@@ -72,14 +89,14 @@ class Writer:
         data_str = b"_"
 
         for data_array in self.append_data_arrays:
-            data_str += base64.b64encode(data_array.flat_data)
+            data_str += encodeArray(data_array.flat_data)
 
         text = self.document.createTextNode(data_str.decode('ascii'))
         append_node.node.appendChild(text)
 
     def write(self, filename):
         with open(filename, 'w') as file:
-            file.write(str(self))
+            self.document.writexml(file, indent="\n  ", addindent="  ")
 
     def __str__(self):
         """Print XML to string"""
