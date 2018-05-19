@@ -1,5 +1,6 @@
 import xml.dom
 import xml.dom.minidom as dom
+import functools
 
 import base64
 
@@ -23,19 +24,22 @@ class Component:
         setAttributes(sub_component.node, attributes)
         return sub_component
 
-    def registerDataArray(self, data_array, append=True):
+    def registerDataArray(self, data_array, vtk_format='append'):
         array_component = Component('DataArray', self.node, self.writer)
         attributes = data_array.attributes
 
-        if append:
-            attributes['format'] = 'append'
+        attributes['format'] = vtk_format
+        if vtk_format == 'append':
             attributes['offset'] = str(self.writer.offset)
             self.writer.offset += data_array.flat_data.size
-        else:
-            attributes['format'] = 'binary'
+            self.writer.append_data_arrays.append(data_array)
+
+        elif vtk_format == 'ascii':
+            data_as_str = functools.reduce(lambda x, y: x + str(y) + ' ', data_array.flat_data, "")
+            array_component.node.appendChild(self.document.createTextNode(data_as_str))
+            
 
         setAttributes(array_component.node, attributes)
-        self.writer.append_data_arrays.append(data_array)
 
 
 class Writer:
@@ -72,6 +76,10 @@ class Writer:
 
         text = self.document.createTextNode(data_str.decode('ascii'))
         append_node.node.appendChild(text)
+
+    def write(self, filename):
+        with open(filename, 'w') as file:
+            file.write(str(self))
 
     def __str__(self):
         """Print XML to string"""

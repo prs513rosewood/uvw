@@ -4,7 +4,7 @@ import operator
 
 class DataArray:
     """Class holding information on ndarray"""
-    def __init__(self, data, spatial_axes, components_order='C'):
+    def __init__(self, data, spatial_axes, name='', components_order='C'):
         self.data = data
         axes = list(range(data.ndim))
         for ax in spatial_axes:
@@ -23,6 +23,7 @@ class DataArray:
         self.flat_data = self.data.transpose(*axes).reshape(-1, order='F')
 
         self.attributes = {
+            "Name": name,
             "type": str(self.flat_data.dtype).capitalize(),
             "NumberOfComponents": str(nb_components)
         }

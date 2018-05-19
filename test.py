@@ -1,23 +1,22 @@
 from writer import *
 from data_array import *
+from vtk_files import *
 import numpy as np
 
-writer = Writer('RectilinearGrid')
-writer.setDataNodeAttributes({
-    "WholeExtent": "0 1 0 1 0 1"
-})
+N = 10
 
-piece = writer.registerPiece({
-    "Extent": "0 1 0 1 0 1"
-})
+x = np.linspace(0, 1, 2*N)
+y = np.linspace(0, 1, N)
+z = np.linspace(0, 1, N)
 
-coordinates = piece.register('Coordinates')
+rect = RectilinearGrid('test.vtr', (x, y, z))
 
-array = np.array([[0, 0, 0], [1, 1, 1]], np.float64)
-data_array = DataArray(array, [0])
-
-coordinates.registerDataArray(data_array)
-coordinates.registerDataArray(data_array)
-writer.registerAppend()
-
-print(writer)
+x, y, z = np.meshgrid(x, y, z, indexing='ij')
+r = np.sqrt(x**2 + y**2 + z**2)
+e_r = np.zeros(r.shape + (3,3))
+e_r[0, 0, 0, :, :] = np.array([[0, 1, 0], [1, 0, 0], [0, 1, 1]])
+e_r[-1, 0, 0, :, :] = np.eye(3)
+print(e_r.shape)
+rect.addPointData(DataArray(e_r, range(3), 'e_r'))
+rect.addPointData(DataArray(r, range(3), 'R'))
+rect.write()
