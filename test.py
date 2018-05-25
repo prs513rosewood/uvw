@@ -5,8 +5,8 @@ import numpy as np
 
 N = 10
 
-x = np.linspace(0, 1, N)
-y = np.linspace(0, 1, N)
+x = np.linspace(0, 1, N*2)
+y = np.linspace(0, 1, N+2)
 z = np.linspace(0, 1, N)
 
 rect = RectilinearGrid('test.vtr', (x, y, z))

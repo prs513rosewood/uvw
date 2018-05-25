@@ -32,13 +32,14 @@ class Component:
         setAttributes(sub_component.node, attributes)
         return sub_component
 
-    def registerDataArray(self, data_array, vtk_format='append'):
+    def registerDataArray(self, data_array, vtk_format='binary'):
         """Register a DataArray object"""
         array_component = Component('DataArray', self.node, self.writer)
         attributes = data_array.attributes
 
         attributes['format'] = vtk_format
         if vtk_format == 'append':
+            raise 'Feature does not work'
             attributes['offset'] = str(self.writer.offset)
             array = data_array.flat_data
             self.writer.offset += array.nbytes

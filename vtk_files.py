@@ -11,10 +11,10 @@ class VTKFile:
         self.writer = Writer(filetype)
 
     def addPointData(self, data_array):
-        self.point_data.registerDataArray(data_array, vtk_format='append')
+        self.point_data.registerDataArray(data_array)
 
     def addCellData(self, data_array):
-        self.cell_data.registerDataArray(data_array, vtk_format='ascii')
+        self.cell_data.registerDataArray(data_array)
 
     def write(self):
         self.writer.registerAppend()
@@ -58,7 +58,7 @@ class RectilinearGrid(VTKFile):
 
         for coord, prefix in zip(self.coordinates, ('x', 'y', 'z')):
             array = DataArray(coord, [0], prefix + '_coordinates')
-            coordinate_component.registerDataArray(array, vtk_format='binary')
+            coordinate_component.registerDataArray(array)
 
         # Registering data elements
         self.point_data = self.piece.register('PointData')
