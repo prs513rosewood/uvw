@@ -1,5 +1,5 @@
-from writer import *
-from data_array import *
+from . import writer
+from . import data_array
 
 import functools
 
@@ -8,7 +8,7 @@ class VTKFile:
     def __init__(self, filename, filetype, rank=None):
         self.filename = filename
         self.rank = rank
-        self.writer = Writer(filetype)
+        self.writer = writer.Writer(filetype)
 
     def addPointData(self, data_array):
         self.point_data.registerDataArray(data_array)
@@ -57,7 +57,7 @@ class RectilinearGrid(VTKFile):
         coordinate_component = self.piece.register('Coordinates')
 
         for coord, prefix in zip(self.coordinates, ('x', 'y', 'z')):
-            array = DataArray(coord, [0], prefix + '_coordinates')
+            array = data_array.DataArray(coord, [0], prefix + '_coordinates')
             coordinate_component.registerDataArray(array)
 
         # Registering data elements
