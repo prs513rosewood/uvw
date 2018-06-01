@@ -1,2 +1,2 @@
-from .vtk_files import *
-from .data_array import *
+from .vtk_files import VTKFile, RectilinearGrid
+from .data_array import DataArray
