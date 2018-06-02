@@ -2,6 +2,8 @@ from . import writer
 from . import data_array
 
 import functools
+import numpy as np
+
 
 class VTKFile:
     """Generic VTK file"""
