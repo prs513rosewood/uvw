@@ -5,6 +5,15 @@ import operator
 class DataArray:
     """Class holding information on ndarray"""
     def __init__(self, data, spatial_axes, name='', components_order='C'):
+        """
+        Data array constructor
+
+        :param data: the numpy array containing the data (possibly a view)
+        :param spatial_axes: a container of ints that indicate which axes of the
+        array correspond to space dimensions (in order)
+        :param name: the name of the data
+        :param components_order: the order of the non-spatial axes of the array
+        """
         self.data = data
         axes = list(range(data.ndim))
         for ax in spatial_axes:
