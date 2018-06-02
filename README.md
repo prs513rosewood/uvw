@@ -79,6 +79,30 @@ UVW also supports writing data on 2D and 1D physical domains, for example:
   grid.write()
 
 
+## List of features
+
+Here is a list of what is available in UVW:
+
+### VTK file formats
+
+- Rectilinear grid (`.vtr`)
+
+### Data representation
+
+- ASCII
+- Base64 (uncompressed)
+
+### Planned developments
+
+Here is a list of future developments:
+
+- [ ] Image data
+- [ ] Unstructured grid
+- [ ] Structured grid
+- [ ] Parallel writing (multi-process)
+- [ ] Benchmarking + performance comparison with [pyevtk](https://bitbucket.org/pauloh/pyevtk)
+
+
 ## Developing
 
 These instructions will get you a copy of the project up and running on your local machine for development and testing purposes.
