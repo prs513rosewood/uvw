@@ -11,7 +11,12 @@ setuptools.setup(
     description="Universal VTK Writer",
     long_description=long_description,
     long_description_content_type="text/markdown",
-    url="",
+    url="https://c4science.ch/source/uvw.git",
     packages=setuptools.find_packages(),
     install_requires=['numpy'],
+    classifiers=(
+        "Programming Language :: Python :: 3",
+        "License :: OSI Approved :: MIT License",
+        "Operating System :: OS Independent",
+    )
 )
