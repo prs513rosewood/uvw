@@ -44,8 +44,8 @@ As a first example, let us write a multi-component numpy array into a rectilinea
   # Some multi-component multi-dimensional data
   data = np.zeros([10, 20, 30, 3, 3])
   data[ball, ...] = np.array([[0, 1, 0],
-  							[1, 0, 0],
-  					[0, 1, 1]])
+                              [1, 0, 0],
+                              [0, 1, 1]])
   
   
   # Adding the point data (see help(DataArray) for more info)
@@ -91,7 +91,7 @@ First clone the git repository:
 git clone https://c4science.ch/source/uvw.git
 ```
 
-Then you can use pip in development mode (most convenient in virtualenv):
+Then you can use pip in development mode (possibly in [virtualenv](https://virtualenv.pypa.io/en/stable/)):
 
 ```
 pip install --user -e .
