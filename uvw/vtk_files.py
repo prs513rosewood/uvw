@@ -29,13 +29,13 @@ class RectilinearGrid(VTKFile):
         VTKFile.__init__(self, filename, 'RectilinearGrid', rank)
 
         # Checking that we actually have a list or tuple
-        if type(coordinates).__name__ not in ('tuple', 'list'):
+        if type(coordinates).__name__ == 'ndarray':
             coordinates = [coordinates]
 
         self.coordinates = list(coordinates)
 
         # Filling in missing coordinates
-        for _ in range(len(coordinates), 3):
+        for _ in range(len(self.coordinates), 3):
             self.coordinates.append(np.array([0.]))
 
         # Setting data extent
