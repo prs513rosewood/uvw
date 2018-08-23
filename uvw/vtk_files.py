@@ -23,6 +23,38 @@ class VTKFile:
         self.writer.write(self.filename)
 
 
+class ImageData(VTKFile):
+    """VTK Image data (coordinates are given by a range and constant spacing)"""
+    def __init__(self, filename, ranges, points, rank=None):
+        VTKFile.__init__(self, filename, 'ImageData', rank)
+
+        # Computing spacings
+        spacings = [(x[1] - x[0]) / (n - 1) for x, n in zip(ranges, points)]
+
+        # Filling in missing coordinates
+        for _ in range(len(points), 3):
+            points.append(1)
+
+        # Setting extents, spacings and origin
+        extent = functools.reduce(lambda x, y: x + "0 {} ".format(y-1), points, "")
+        spacings = functools.reduce(lambda x, y: x + "{} ".format(y), spacings, "")
+        origins = functools.reduce(lambda x, y: x + "{} ".format(y[0]), ranges, "")
+
+        self.writer.setDataNodeAttributes({
+            'WholeExtent': extent,
+            'Spacing': spacings,
+            'Origin': origins
+        })
+
+        self.piece = self.writer.registerPiece({
+            "Extent": extent
+        })
+
+        # Registering data elements
+        self.point_data = self.piece.register('PointData')
+        self.cell_data = self.piece.register('CellData')
+
+
 class RectilinearGrid(VTKFile):
     """VTK Rectilinear grid (coordinates are given by 3 seperate ranges)"""
     def __init__(self, filename, coordinates, rank=None):
