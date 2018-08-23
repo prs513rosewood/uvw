@@ -85,6 +85,7 @@ Here is a list of what is available in UVW:
 
 ### VTK file formats
 
+- Image data (`.vti`)
 - Rectilinear grid (`.vtr`)
 
 ### Data representation
@@ -96,7 +97,7 @@ Here is a list of what is available in UVW:
 
 Here is a list of future developments:
 
-- [ ] Image data
+- [x] Image data
 - [ ] Unstructured grid
 - [ ] Structured grid
 - [ ] Parallel writing (multi-process)
