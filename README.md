@@ -87,6 +87,7 @@ Here is a list of what is available in UVW:
 
 - Image data (`.vti`)
 - Rectilinear grid (`.vtr`)
+- Structured grid (`.vts`)
 
 ### Data representation
 
@@ -99,7 +100,7 @@ Here is a list of future developments:
 
 - [x] Image data
 - [ ] Unstructured grid
-- [ ] Structured grid
+- [x] Structured grid
 - [ ] Parallel writing (multi-process)
 - [ ] Benchmarking + performance comparison with [pyevtk](https://bitbucket.org/pauloh/pyevtk)
 
@@ -127,7 +128,7 @@ pip install --user -e .
 The tests can be run using [pytest](https://docs.pytest.org/en/latest/):
 
 ```
-pytest tests
+cd tests; pytest
 ```
 
 ## License
