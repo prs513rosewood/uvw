@@ -25,6 +25,8 @@ class Component:
         self.node = self.document.createElement(name)
         parent_node.appendChild(self.node)
 
+    def setAttributes(self, attributes):
+        setAttributes(self.node, attributes)
 
     def register(self, name, attributes=dict()):
         """Register a sub-component"""
@@ -77,7 +79,7 @@ class Writer:
         """Set attributes for the entire dataset"""
         setAttributes(self.data_node, attributes)
 
-    def registerPiece(self, attributes):
+    def registerPiece(self, attributes={}):
         """Register a piece element"""
         piece = Component('Piece', self.data_node, self)
         setAttributes(piece.node, attributes)
