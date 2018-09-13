@@ -24,60 +24,61 @@ pip install --user git+https://c4science.ch/source/uvw.git
 
 As a first example, let us write a multi-component numpy array into a rectilinear grid:
 
-  lang=python
-  import numpy as np
-  from uvw import RectilinearGrid, DataArray
-  
-  # Creating coordinates
-  x = np.linspace(-0.5, 0.5, 10)
-  y = np.linspace(-0.5, 0.5, 20)
-  z = np.linspace(-0.9, 0.9, 30)
-  
-  # Creating the file
-  grid = RectilinearGrid('grid.vtr', (x, y, z))
-  
-  # A centered ball
-  x, y, z = np.meshgrid(x, y, z, indexing='ij')
-  r = np.sqrt(x**2 + y**2 + z**2)
-  ball = r < 0.3
-  
-  # Some multi-component multi-dimensional data
-  data = np.zeros([10, 20, 30, 3, 3])
-  data[ball, ...] = np.array([[0, 1, 0],
-                              [1, 0, 0],
-                              [0, 1, 1]])
-  
-  
-  # Adding the point data (see help(DataArray) for more info)
-  grid.addPointData(DataArray(data, range(3), 'data'))
-  grid.write()
+```lang=python
+import numpy as np
+from uvw import RectilinearGrid, DataArray
+
+# Creating coordinates
+x = np.linspace(-0.5, 0.5, 10)
+y = np.linspace(-0.5, 0.5, 20)
+z = np.linspace(-0.9, 0.9, 30)
+
+# Creating the file
+grid = RectilinearGrid('grid.vtr', (x, y, z))
+
+# A centered ball
+x, y, z = np.meshgrid(x, y, z, indexing='ij')
+r = np.sqrt(x**2 + y**2 + z**2)
+ball = r < 0.3
+
+# Some multi-component multi-dimensional data
+data = np.zeros([10, 20, 30, 3, 3])
+data[ball, ...] = np.array([[0, 1, 0],
+                            [1, 0, 0],
+                            [0, 1, 1]])
+
+
+# Adding the point data (see help(DataArray) for more info)
+grid.addPointData(DataArray(data, range(3), 'data'))
+grid.write()
+```
 
 UVW also supports writing data on 2D and 1D physical domains, for example:
 
-  lang=python
-  import numpy as np
-  from uvw import RectilinearGrid, DataArray
-  
-  # Creating coordinates
-  x = np.linspace(-0.5, 0.5, 10)
-  y = np.linspace(-0.5, 0.5, 20)
-  
-  # Creating the file
-  grid = RectilinearGrid('grid.vtr', (x, y))
-  
-  # A centered disk
-  x, y = np.meshgrid(x, y, indexing='ij')
-  r = np.sqrt(x**2 + y**2)
-  R = 0.3
-  disk = r < R
-  
-  data = np.zeros([10, 20])
-  data[disk] = np.sqrt(1-(r[disk]/R)**2)
-  
-  # Adding the point data (see help(DataArray) for more info)
-  grid.addPointData(DataArray(data, range(2), 'data'))
-  grid.write()
+```lang=python
+import numpy as np
+from uvw import RectilinearGrid, DataArray
 
+# Creating coordinates
+x = np.linspace(-0.5, 0.5, 10)
+y = np.linspace(-0.5, 0.5, 20)
+
+# Creating the file
+grid = RectilinearGrid('grid.vtr', (x, y))
+
+# A centered disk
+x, y = np.meshgrid(x, y, indexing='ij')
+r = np.sqrt(x**2 + y**2)
+R = 0.3
+disk = r < R
+
+data = np.zeros([10, 20])
+data[disk] = np.sqrt(1-(r[disk]/R)**2)
+
+# Adding the point data (see help(DataArray) for more info)
+grid.addPointData(DataArray(data, range(2), 'data'))
+grid.write()
+```
 
 ## List of features
 
