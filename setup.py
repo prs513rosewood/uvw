@@ -1,11 +1,11 @@
 import setuptools
 
 with open("README.md", "r") as fh:
-    long_description = fh.read()
+    long_description = fh.read().replace('lang=', '')
 
 setuptools.setup(
     name="uvw",
-    version="0.0.3",
+    version="0.0.4",
     author="Lucas Frérot",
     author_email="lucas.frerot@epfl.ch",
     description="Universal VTK Writer",
