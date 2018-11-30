@@ -2,8 +2,10 @@ import numpy as np
 import functools
 import operator
 
+
 class DataArray:
     """Class holding information on ndarray"""
+
     def __init__(self, data, spatial_axes, name='', components_order='C'):
         """
         Data array constructor
@@ -19,7 +21,8 @@ class DataArray:
         for ax in spatial_axes:
             axes.remove(ax)
 
-        nb_components = functools.reduce(lambda x, y: x * data.shape[y], axes, 1)
+        nb_components = functools.reduce(
+            lambda x, y: x * data.shape[y], axes, 1)
 
         if components_order == 'C':
             axes.reverse()

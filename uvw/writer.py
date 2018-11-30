@@ -5,10 +5,12 @@ import functools
 import base64
 import numpy as np
 
+
 def setAttributes(node, attributes):
     """Set attributes of a node"""
     for item in attributes.items():
         node.setAttribute(*item)
+
 
 def encodeArray(array):
     # Mandatory number of bytes encoded as uint32
@@ -17,8 +19,10 @@ def encodeArray(array):
     bytes += base64.b64encode(array)
     return bytes
 
+
 class Component:
     """Generic component class capable of registering sub-components"""
+
     def __init__(self, name, parent_node, writer):
         self.writer = writer
         self.document = writer.document
@@ -49,20 +53,22 @@ class Component:
             self.writer.append_data_arrays.append(data_array)
 
         elif vtk_format == 'ascii':
-            data_as_str = functools.reduce(lambda x, y: x + str(y) + ' ', data_array.flat_data, "")
-            array_component.node.appendChild(self.document.createTextNode(data_as_str))
+            data_as_str = functools.reduce(
+                lambda x, y: x + str(y) + ' ', data_array.flat_data, "")
+            array_component.node.appendChild(
+                self.document.createTextNode(data_as_str))
 
         elif vtk_format == 'binary':
             array_component.node.appendChild(
                 self.document.createTextNode(
                     encodeArray(data_array.flat_data).decode('ascii')))
-            
 
         setAttributes(array_component.node, attributes)
 
 
 class Writer:
     """Generic XML handler for VTK files"""
+
     def __init__(self, vtk_format, vtk_version='0.1', byte_order='LittleEndian'):
         self.document = dom.getDOMImplementation().createDocument(None, 'VTKFile', None)
         self.root = self.document.documentElement
@@ -71,7 +77,7 @@ class Writer:
         self.root.setAttribute('byte_order', byte_order)
         self.data_node = self.document.createElement(vtk_format)
         self.root.appendChild(self.data_node)
-        self.offset = 0 # Global offset
+        self.offset = 0  # Global offset
         self.size_indicator_bytes = np.dtype(np.uint32).itemsize
         self.append_data_arrays = []
 
@@ -104,4 +110,3 @@ class Writer:
     def __str__(self):
         """Print XML to string"""
         return self.document.toprettyxml()
-

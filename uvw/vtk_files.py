@@ -5,9 +5,9 @@ import functools
 import numpy as np
 
 
-
 class VTKFile:
     """Generic VTK file"""
+
     def __init__(self, filename, filetype, rank=None):
         self.filename = filename
         self.rank = rank
@@ -33,6 +33,7 @@ class VTKFile:
 
 class ImageData(VTKFile):
     """VTK Image data (coordinates are given by a range and constant spacing)"""
+
     def __init__(self, filename, ranges, points, rank=None):
         VTKFile.__init__(self, filename, self.__class__.__name__, rank)
 
@@ -44,9 +45,12 @@ class ImageData(VTKFile):
             points.append(1)
 
         # Setting extents, spacings and origin
-        extent = functools.reduce(lambda x, y: x + "0 {} ".format(y-1), points, "")
-        spacings = functools.reduce(lambda x, y: x + "{} ".format(y), spacings, "")
-        origins = functools.reduce(lambda x, y: x + "{} ".format(y[0]), ranges, "")
+        extent = functools.reduce(
+            lambda x, y: x + "0 {} ".format(y-1), points, "")
+        spacings = functools.reduce(
+            lambda x, y: x + "{} ".format(y), spacings, "")
+        origins = functools.reduce(
+            lambda x, y: x + "{} ".format(y[0]), ranges, "")
 
         self.writer.setDataNodeAttributes({
             'WholeExtent': extent,
@@ -61,6 +65,7 @@ class ImageData(VTKFile):
 
 class RectilinearGrid(VTKFile):
     """VTK Rectilinear grid (coordinates are given by 3 seperate ranges)"""
+
     def __init__(self, filename, coordinates, rank=None):
         VTKFile.__init__(self, filename, self.__class__.__name__, rank)
 
@@ -79,10 +84,12 @@ class RectilinearGrid(VTKFile):
 
         for coord in self.coordinates:
             if coord.ndim != 1:
-                raise Exception('Coordinate array should have only one dimension')
+                raise Exception(
+                    'Coordinate array should have only one dimension')
             extent.append(coord.size-1)
 
-        extent = functools.reduce(lambda x, y: x + "0 {} ".format(y), extent, "")
+        extent = functools.reduce(
+            lambda x, y: x + "0 {} ".format(y), extent, "")
         self.writer.setDataNodeAttributes({
             "WholeExtent": extent
         })
@@ -101,12 +108,13 @@ class RectilinearGrid(VTKFile):
 
 class StructuredGrid(VTKFile):
     """VTK Structured grid (coordinates given by a single array of points)"""
+
     def __init__(self, filename, points, shape, rank=None):
         VTKFile.__init__(self, filename, self.__class__.__name__, rank)
 
         if points.ndim != 2:
             raise 'Points should be a 2D array'
-        
+
         # Completing the missing coordinates
         points_3d = np.zeros((points.shape[0], 3))
         for i in range(points.shape[1]):
@@ -116,7 +124,8 @@ class StructuredGrid(VTKFile):
         for i in range(len(extent), 3):
             extent.append(0)
 
-        extent = functools.reduce(lambda x, y: x + "0 {} ".format(y), extent, "")
+        extent = functools.reduce(
+            lambda x, y: x + "0 {} ".format(y), extent, "")
         self.writer.setDataNodeAttributes({
             "WholeExtent": extent
         })
@@ -126,4 +135,5 @@ class StructuredGrid(VTKFile):
         })
 
         points_component = self.piece.register('Points')
-        points_component.registerDataArray(data_array.DataArray(points_3d, [0], 'points'))
+        points_component.registerDataArray(
+            data_array.DataArray(points_3d, [0], 'points'))
