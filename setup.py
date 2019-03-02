@@ -5,7 +5,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="uvw",
-    version="0.0.4",
+    version="0.0.6",
     author="Lucas Frérot",
     author_email="lucas.frerot@epfl.ch",
     description="Universal VTK Writer",

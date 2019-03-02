@@ -63,21 +63,18 @@ from uvw import RectilinearGrid, DataArray
 x = np.linspace(-0.5, 0.5, 10)
 y = np.linspace(-0.5, 0.5, 20)
 
-# Creating the file
-grid = RectilinearGrid('grid.vtr', (x, y))
-
 # A centered disk
-x, y = np.meshgrid(x, y, indexing='ij')
-r = np.sqrt(x**2 + y**2)
+xx, yy = np.meshgrid(x, y, indexing='ij')
+r = np.sqrt(xx**2 + yy**2)
 R = 0.3
 disk = r < R
 
 data = np.zeros([10, 20])
 data[disk] = np.sqrt(1-(r[disk]/R)**2)
 
-# Adding the point data (see help(DataArray) for more info)
-grid.addPointData(DataArray(data, range(2), 'data'))
-grid.write()
+# File objects can be used as a context manager
+with RectilinearGrid('grid.vtr', (x, y)) as grid:
+  grid.addPointData(DataArray(data, range(2), 'data'))
 ```
 
 ## List of features
