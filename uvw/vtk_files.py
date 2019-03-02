@@ -30,6 +30,12 @@ class VTKFile:
         self.writer.registerAppend()
         self.writer.write(self.filename)
 
+    def __enter__(self):
+        return self
+
+    def __exit__(self, *args):
+        self.write()
+
 
 class ImageData(VTKFile):
     """VTK Image data (coordinates are given by a range and constant spacing)"""
@@ -85,7 +91,8 @@ class RectilinearGrid(VTKFile):
         for coord in self.coordinates:
             if coord.ndim != 1:
                 raise Exception(
-                    'Coordinate array should have only one dimension')
+                    'Coordinate array should have only one dimension'
+                    + ' (has {})'.format(coord.ndim))
             extent.append(coord.size-1)
 
         extent = functools.reduce(

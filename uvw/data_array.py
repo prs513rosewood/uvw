@@ -18,6 +18,11 @@ class DataArray:
         """
         self.data = data
         axes = list(range(data.ndim))
+        spatial_axes = list(spatial_axes)
+
+        if data.ndim < len(spatial_axes):
+            raise Exception('Dimensions of data smaller than space dimensions')
+
         for ax in spatial_axes:
             axes.remove(ax)
 
