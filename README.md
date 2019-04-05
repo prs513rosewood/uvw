@@ -72,7 +72,7 @@ disk = r < R
 data = np.zeros([10, 20])
 data[disk] = np.sqrt(1-(r[disk]/R)**2)
 
-# File objects can be used as a context manager
+# File object can be used as a context manager
 with RectilinearGrid('grid.vtr', (x, y)) as grid:
   grid.addPointData(DataArray(data, range(2), 'data'))
 ```
