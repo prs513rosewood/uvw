@@ -17,14 +17,14 @@ Here is how to install and use `uvw`.
 This library can be installed with `pip`:
 
 ```
-pip install --user git+https://c4science.ch/source/uvw.git
+pip install --user uvw
 ```
 
 ### Writing Numpy arrays
 
 As a first example, let us write a multi-component numpy array into a rectilinear grid:
 
-```lang=python
+```python
 import numpy as np
 from uvw import RectilinearGrid, DataArray
 
@@ -55,7 +55,7 @@ grid.write()
 
 UVW also supports writing data on 2D and 1D physical domains, for example:
 
-```lang=python
+```python
 import numpy as np
 from uvw import RectilinearGrid, DataArray
 

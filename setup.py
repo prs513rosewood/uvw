@@ -5,13 +5,13 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="uvw",
-    version="0.0.6",
+    version="0.0.7",
     author="Lucas Frérot",
     author_email="lucas.frerot@epfl.ch",
     description="Universal VTK Writer",
     long_description=long_description,
     long_description_content_type="text/markdown",
-    url="https://c4science.ch/source/uvw.git",
+    url="https://github.com/prs513rosewood/uvw",
     packages=setuptools.find_packages(),
     install_requires=['numpy'],
     classifiers=(
