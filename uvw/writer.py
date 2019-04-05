@@ -1,6 +1,6 @@
-import xml.dom
 import xml.dom.minidom as dom
 import functools
+import io
 
 import base64
 import numpy as np
@@ -69,8 +69,11 @@ class Component:
 class Writer:
     """Generic XML handler for VTK files"""
 
-    def __init__(self, vtk_format, vtk_version='0.1', byte_order='LittleEndian'):
-        self.document = dom.getDOMImplementation().createDocument(None, 'VTKFile', None)
+    def __init__(self, vtk_format,
+                 vtk_version='0.1',
+                 byte_order='LittleEndian'):
+        self.document = dom.getDOMImplementation()  \
+                           .createDocument(None, 'VTKFile', None)
         self.root = self.document.documentElement
         self.root.setAttribute('type', vtk_format)
         self.root.setAttribute('version', vtk_version)
@@ -103,9 +106,15 @@ class Writer:
         text = self.document.createTextNode(data_str.decode('ascii'))
         append_node.node.appendChild(text)
 
-    def write(self, filename):
-        with open(filename, 'w') as file:
-            self.document.writexml(file, indent="\n  ", addindent="  ")
+    def write(self, fd):
+        if type(fd) == str:
+            with open(fd, 'w') as file:
+                self.write(file)
+        elif issubclass(type(fd), io.TextIOBase):
+            self.document.writexml(fd, indent="\n  ", addindent="  ")
+        else:
+            raise RuntimeError("Expected a path or "
+                               + "file handle, got {}".format(type(fd)))
 
     def __str__(self):
         """Print XML to string"""

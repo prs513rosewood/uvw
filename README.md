@@ -56,6 +56,7 @@ grid.write()
 UVW also supports writing data on 2D and 1D physical domains, for example:
 
 ```python
+import sys
 import numpy as np
 from uvw import RectilinearGrid, DataArray
 
@@ -73,7 +74,8 @@ data = np.zeros([10, 20])
 data[disk] = np.sqrt(1-(r[disk]/R)**2)
 
 # File object can be used as a context manager
-with RectilinearGrid('grid.vtr', (x, y)) as grid:
+# and you can write to stdout!
+with RectilinearGrid(sys.stdout, (x, y)) as grid:
   grid.addPointData(DataArray(data, range(2), 'data'))
 ```
 
