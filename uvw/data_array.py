@@ -1,6 +1,4 @@
-import numpy as np
 import functools
-import operator
 
 
 class DataArray:
@@ -11,8 +9,8 @@ class DataArray:
         Data array constructor
 
         :param data: the numpy array containing the data (possibly a view)
-        :param spatial_axes: a container of ints that indicate which axes of the
-        array correspond to space dimensions (in order)
+        :param spatial_axes: a container of ints that indicate which axes of
+        the array correspond to space dimensions (in order)
         :param name: the name of the data
         :param components_order: the order of the non-spatial axes of the array
         """

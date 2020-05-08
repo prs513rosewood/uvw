@@ -38,7 +38,7 @@ class VTKFile:
 
 
 class ImageData(VTKFile):
-    """VTK Image data (coordinates are given by a range and constant spacing)"""
+    """VTK Image data (coordinates given by a range and constant spacing)"""
 
     def __init__(self, filename, ranges, points, rank=None):
         VTKFile.__init__(self, filename, self.__class__.__name__, rank)

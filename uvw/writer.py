@@ -44,15 +44,8 @@ class Component:
         attributes = data_array.attributes
 
         attributes['format'] = vtk_format
-        if vtk_format == 'append':
-            raise 'Feature does not work'
-            attributes['offset'] = str(self.writer.offset)
-            array = data_array.flat_data
-            self.writer.offset += array.nbytes
-            self.writer.offset += self.writer.size_indicator_bytes
-            self.writer.append_data_arrays.append(data_array)
 
-        elif vtk_format == 'ascii':
+        if vtk_format == 'ascii':
             data_as_str = functools.reduce(
                 lambda x, y: x + str(y) + ' ', data_array.flat_data, "")
             array_component.node.appendChild(
@@ -62,6 +55,8 @@ class Component:
             array_component.node.appendChild(
                 self.document.createTextNode(
                     encodeArray(data_array.flat_data).decode('ascii')))
+        else:
+            raise Exception('Unsupported VTK Format "{}"'.format(vtk_format))
 
         setAttributes(array_component.node, attributes)
 
