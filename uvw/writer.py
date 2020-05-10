@@ -32,11 +32,26 @@ class Component:
     def setAttributes(self, attributes):
         setAttributes(self.node, attributes)
 
-    def register(self, name, attributes=dict()):
+    def register(self, name, attributes={}):
         """Register a sub-component"""
+        if type(attributes) != dict:
+            raise Exception(
+                'Cannot register attributes of type ' + str(type(attributes)))
         sub_component = Component(name, self.node, self.writer)
         setAttributes(sub_component.node, attributes)
         return sub_component
+
+    def _addArrayNodeData(self, data_array, node, vtk_format):
+        if vtk_format == 'ascii':
+            data_as_str = functools.reduce(
+                lambda x, y: x + str(y) + ' ', data_array.flat_data, "")
+            node.appendChild(self.document.createTextNode(data_as_str))
+
+        elif vtk_format == 'binary':
+            node.appendChild(self.document.createTextNode(
+                    encodeArray(data_array.flat_data).decode('ascii')))
+        else:
+            raise Exception('Unsupported VTK Format "{}"'.format(vtk_format))
 
     def registerDataArray(self, data_array, vtk_format='binary'):
         """Register a DataArray object"""
@@ -45,19 +60,16 @@ class Component:
 
         attributes['format'] = vtk_format
 
-        if vtk_format == 'ascii':
-            data_as_str = functools.reduce(
-                lambda x, y: x + str(y) + ' ', data_array.flat_data, "")
-            array_component.node.appendChild(
-                self.document.createTextNode(data_as_str))
+        # Write array data
+        self._addArrayNodeData(data_array, array_component.node, vtk_format)
 
-        elif vtk_format == 'binary':
-            array_component.node.appendChild(
-                self.document.createTextNode(
-                    encodeArray(data_array.flat_data).decode('ascii')))
-        else:
-            raise Exception('Unsupported VTK Format "{}"'.format(vtk_format))
+        setAttributes(array_component.node, attributes)
 
+    def registerPDataArray(self, data_array, vtk_format='binary'):
+        """Register a DataArray object in p-file"""
+        array_component = Component('PDataArray', self.node, self.writer)
+        attributes = data_array.attributes
+        attributes['format'] = vtk_format
         setAttributes(array_component.node, attributes)
 
 
@@ -75,7 +87,6 @@ class Writer:
         self.root.setAttribute('byte_order', byte_order)
         self.data_node = self.document.createElement(vtk_format)
         self.root.appendChild(self.data_node)
-        self.offset = 0  # Global offset
         self.size_indicator_bytes = np.dtype(np.uint32).itemsize
         self.append_data_arrays = []
 
@@ -85,9 +96,13 @@ class Writer:
 
     def registerPiece(self, attributes={}):
         """Register a piece element"""
-        piece = Component('Piece', self.data_node, self)
-        setAttributes(piece.node, attributes)
-        return piece
+        return self.registerComponent('Piece', self.data_node,
+                                      attributes)
+
+    def registerComponent(self, name, parent, attributes={}):
+        comp = Component(name, parent, self)
+        setAttributes(comp.node, attributes)
+        return comp
 
     def registerAppend(self):
         append_node = Component('AppendedData', self.root, self)

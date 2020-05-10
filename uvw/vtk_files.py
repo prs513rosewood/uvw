@@ -95,14 +95,27 @@ class RectilinearGrid(VTKFile):
                     + ' (has {})'.format(coord.ndim))
             extent.append(coord.size-1)
 
-        extent = functools.reduce(
-            lambda x, y: x + "0 {} ".format(y), extent, "")
+        if offsets is None:
+            offsets = [0] * len(extent)
+
+        if len(offsets) != len(extent):
+            raise Exception(
+                'Size of offsets should '
+                'match domain dimension {}'.format(len(extent)))
+
+        # Create extent string with offsets
+        self.extent = functools.reduce(
+            lambda x, y: x + "{} {} ".format(y[0], y[0]+y[1]),
+            zip(offsets, extent),
+            ""
+        )
+
         self.writer.setDataNodeAttributes({
-            "WholeExtent": extent
+            "WholeExtent": self.extent
         })
 
         self.piece.setAttributes({
-            "Extent": extent
+            "Extent": self.extent
         })
 
         # Registering coordinates
