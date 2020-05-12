@@ -21,6 +21,14 @@ This library can be installed with `pip`:
 pip install --user uvw
 ```
 
+If you want to activate parallel capabilities, run:
+
+```
+pip install --user uvw[mpi]
+```
+
+which will automatically pull `mpi4py` as a dependency.
+
 ### Writing Numpy arrays
 
 As a first example, let us write a multi-component numpy array into a rectilinear grid:
@@ -175,13 +183,13 @@ These instructions will get you a copy of the project up and running on your loc
 First clone the git repository:
 
 ```
-git clone https://c4science.ch/source/uvw.git
+git clone https://github.com/prs513rosewood/uvw.git
 ```
 
 Then you can use pip in development mode (possibly in [virtualenv](https://virtualenv.pypa.io/en/stable/)):
 
 ```
-pip install --user -e .
+pip install --user -e .[mpi,tests]
 ```
 
 ## Running the tests
@@ -189,7 +197,7 @@ pip install --user -e .
 The tests can be run using [pytest](https://docs.pytest.org/en/latest/):
 
 ```
-cd tests; pytest
+cd tests; mpiexec -n 2 pytest --with-mpi
 ```
 
 ## License

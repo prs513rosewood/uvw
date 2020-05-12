@@ -5,15 +5,19 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="uvw",
-    version="0.0.7",
+    version="0.1.0",
     author="Lucas Frérot",
-    author_email="lucas.frerot@epfl.ch",
+    author_email="lucas.frerot@protonmail.com",
     description="Universal VTK Writer",
     long_description=long_description,
     long_description_content_type="text/markdown",
     url="https://github.com/prs513rosewood/uvw",
     packages=setuptools.find_packages(),
     install_requires=['numpy'],
+    extras_require={
+      "mpi": ['mpi4py'],
+      "tests": ['pytest', 'pytest-mpi', 'mpi4py'],
+    },
     classifiers=(
         "Programming Language :: Python :: 3",
         "License :: OSI Approved :: MIT License",
