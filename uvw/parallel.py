@@ -82,7 +82,7 @@ class PRectilinearGrid(vtk_files.RectilinearGrid):
         if self.rank == MASTER_RANK:
             self.ppoint_data.registerPDataArray(array)
 
-    def addCelleData(self, array):
+    def addCellData(self, array):
         self.parent.addCellData(self, array)
         if self.rank == MASTER_RANK:
             self.pcell_data.registerPDataArray(array)
