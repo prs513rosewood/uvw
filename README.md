@@ -48,9 +48,14 @@ data[ball, ...] = np.array([[0, 1, 0],
                             [1, 0, 0],
                             [0, 1, 1]])
 
+# Some cell data
+cell_data = np.zeros([9, 19, 29])
+cell_data[0::2, 0::2, 0::2] = 1
 
 # Adding the point data (see help(DataArray) for more info)
-grid.addPointData(DataArray(data, range(3), 'data'))
+grid.addPointData(DataArray(data, range(3), 'ball'))
+# Adding the cell data
+grid.addCellData(DataArray(cell_data, range(3), 'checkers'))
 grid.write()
 ```
 

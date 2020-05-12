@@ -49,8 +49,8 @@ out_name = 'parallel_mpi.pvtr'
 xx, yy = np.meshgrid(x, y, indexing='ij', sparse=True)
 r = np.sqrt(xx**2 + yy**2)
 data = np.exp(-r**2)
-proc = np.ones_like(r) * rank
+proc = np.ones((x.size-1, y.size-1)) * rank
 
 with PRectilinearGrid(out_name, (x, y), offsets[rank]) as rect:
     rect.addPointData(DataArray(data, range(2), 'gaussian'))
-    rect.addPointData(DataArray(proc, range(2), 'proc'))
+    rect.addCellData(DataArray(proc, range(2), 'proc'))
