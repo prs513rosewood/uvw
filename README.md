@@ -102,21 +102,21 @@ rank = comm.Get_rank()
 
 N = 20
 
-# Domain bounds
+# Domain bounds per rank
 bounds = [
     {'x': (-2, 0), 'y': (-2, 0)},
     {'x': (-2, 0), 'y': (0,  2)},
     {'x': (0,  2), 'y': (-2, 2)},
 ]
 
-# Domain sizes
+# Domain sizes per rank
 sizes = [
     {'x': N, 'y': N},
     {'x': N, 'y': N},
     {'x': N, 'y': 2*N-1},  # account for overlap
 ]
 
-# Size offsets
+# Size offsets per rank
 offsets = [
     [0, 0],
     [0, N],
@@ -129,14 +129,16 @@ y = np.linspace(*bounds[rank]['y'], sizes[rank]['y'])
 xx, yy = np.meshgrid(x, y, indexing='ij', sparse=True)
 r = np.sqrt(xx**2 + yy**2)
 data = np.exp(-r**2)
-proc = np.ones_like(r) * rank
+
+# Indicating rank info with a cell array
+proc = np.ones((x.size-1, y.size-1)) * rank
 
 with PRectilinearGrid('pgrid.pvtr', (x, y), offsets[rank]) as rect:
     rect.addPointData(DataArray(data, range(2), 'gaussian'))
-    rect.addPointData(DataArray(proc, range(2), 'proc'))
+    rect.addCellData(DataArray(proc, range(2), 'proc'))
 ```
 
-As you can see, the using `PRectilinearGrid` feels just like using `RectilinearGrid`, except that you need to supply the position of the local grid in the global grid numbering (the `offsets[rank]` in the above example). Note that RecilinearGrid VTK files need an overlap in data, hence why the global grid size ends up being `(2*N-1, 2*N-1)`. If you forget that overlap, Paraview (or another VTK-based software) may complain that some extents in the global grid are missing data.
+As you can see, using `PRectilinearGrid` feels just like using `RectilinearGrid`, except that you need to supply the position of the local grid in the global grid numbering (the `offsets[rank]` in the above example). Note that RecilinearGrid VTK files need an overlap in point data, hence why the global grid size ends up being `(2*N-1, 2*N-1)`. If you forget that overlap, Paraview (or another VTK-based software) may complain that some parts in the global grid (aka "extents" in VTK) are missing data.
 
 ## List of features
 

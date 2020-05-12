@@ -17,7 +17,7 @@ if comm.Get_size() != 4:
 
 N = 20
 
-# Domain bounds
+# Domain bounds per rank
 bounds = [
     {'x': (-2, 0), 'y': (-2, 0)},
     {'x': (-2, 0), 'y': (0,  2)},
@@ -25,7 +25,7 @@ bounds = [
     {'x': (-2, 2), 'y': (2,  3)},
 ]
 
-# Domain sizes
+# Domain sizes per rank
 sizes = [
     {'x': N, 'y': N},
     {'x': N, 'y': N},
@@ -33,7 +33,7 @@ sizes = [
     {'x': 2*N-1, 'y':N//2},
 ]
 
-# Size offsets
+# Size offsets per rank
 offsets = [
     [0, 0],
     [0, N],
@@ -49,6 +49,8 @@ out_name = 'parallel_mpi.pvtr'
 xx, yy = np.meshgrid(x, y, indexing='ij', sparse=True)
 r = np.sqrt(xx**2 + yy**2)
 data = np.exp(-r**2)
+
+# Indicating rank info with a cell array
 proc = np.ones((x.size-1, y.size-1)) * rank
 
 with PRectilinearGrid(out_name, (x, y), offsets[rank]) as rect:
