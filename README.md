@@ -11,6 +11,7 @@ Here is how to install and use `uvw`.
 
 * Python 3. It may work with python 2, but it hasn't been tested.
 * [Numpy](http://www.numpy.org/). This code has been tested with Numpy version 1.14.3.
+* [mpi4py](https://mpi4py.readthedocs.io/en/stable/) only if you wish to use the parallel classes of UVW (i.e. the submodule `uvw.parallel`)
 
 ### Installing
 
@@ -79,6 +80,59 @@ with RectilinearGrid(sys.stdout, (x, y)) as grid:
   grid.addPointData(DataArray(data, range(2), 'data'))
 ```
 
+## Writing in parallel with `mpi4py`
+
+The classes contained in the `uvw.parallel` submodule support multi-process writing using `mpi4py`. Here is a code example:
+
+```python
+import numpy as np
+
+from mpi4py import MPI
+
+from uvw.parallel import PRectilinearGrid
+from uvw import DataArray
+
+comm = MPI.COMM_WORLD
+rank = comm.Get_rank()
+
+N = 20
+
+# Domain bounds
+bounds = [
+    {'x': (-2, 0), 'y': (-2, 0)},
+    {'x': (-2, 0), 'y': (0,  2)},
+    {'x': (0,  2), 'y': (-2, 2)},
+]
+
+# Domain sizes
+sizes = [
+    {'x': N, 'y': N},
+    {'x': N, 'y': N},
+    {'x': N, 'y': 2*N-1},  # account for overlap
+]
+
+# Size offsets
+offsets = [
+    [0, 0],
+    [0, N],
+    [N, 0],
+]
+
+x = np.linspace(*bounds[rank]['x'], sizes[rank]['x'])
+y = np.linspace(*bounds[rank]['y'], sizes[rank]['y'])
+
+xx, yy = np.meshgrid(x, y, indexing='ij', sparse=True)
+r = np.sqrt(xx**2 + yy**2)
+data = np.exp(-r**2)
+proc = np.ones_like(r) * rank
+
+with PRectilinearGrid('pgrid.pvtr', (x, y), offsets[rank]) as rect:
+    rect.addPointData(DataArray(data, range(2), 'gaussian'))
+    rect.addPointData(DataArray(proc, range(2), 'proc'))
+```
+
+As you can see, the using `PRectilinearGrid` feels just like using `RectilinearGrid`, except that you need to supply the position of the local grid in the global grid numbering (the `offsets[rank]` in the above example). Note that RecilinearGrid VTK files need an overlap in data, hence why the global grid size ends up being `(2*N-1, 2*N-1)`. If you forget that overlap, Paraview (or another VTK-based software) may complain that some extents in the global grid are missing data.
+
 ## List of features
 
 Here is a list of what is available in UVW:
@@ -101,7 +155,7 @@ Here is a list of future developments:
 - [x] Image data
 - [ ] Unstructured grid
 - [x] Structured grid
-- [ ] Parallel writing (multi-process)
+- [x] Parallel writing (`mpi4py`-enabled `PRectilinearGrid` *is now available!*)
 - [ ] Benchmarking + performance comparison with [pyevtk](https://bitbucket.org/pauloh/pyevtk)
 
 
