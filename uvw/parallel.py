@@ -23,7 +23,7 @@ class PRectilinearGrid(vtk_files.RectilinearGrid):
         # Construct name of piece file
         fragmented_name = splitext(filename)
         self.piece_name_template = (fragmented_name[0] +
-                                    '_rank{rank}.' + fragmented_name[1][1:])
+                                    '_rank{rank}.' + fragmented_name[1][2:])
 
         # Name of piece file associated to rank
         self.parent.__init__(

@@ -1,0 +1,16 @@
+<?xml version="1.0" ?>
+  <VTKFile byte_order="LittleEndian" type="PRectilinearGrid" version="0.1">
+    <PRectilinearGrid WholeExtent="0 10 0 4 0 2 ">
+      <PPointData>
+        <PDataArray Name="R" NumberOfComponents="1" format="binary" type="Float64"/>
+      </PPointData>
+      <PCellData/>
+      <Piece Extent="0 5 0 4 0 2 " Source="test_prectilinear_grid_rank0.vtr"/>
+      <Piece Extent="5 10 0 4 0 2 " Source="test_prectilinear_grid_rank1.vtr"/>
+      <PCoordinates>
+        <PDataArray Name="x_coordinates" NumberOfComponents="1" format="binary" type="Float64"/>
+        <PDataArray Name="y_coordinates" NumberOfComponents="1" format="binary" type="Float64"/>
+        <PDataArray Name="z_coordinates" NumberOfComponents="1" format="binary" type="Float64"/>
+      </PCoordinates>
+    </PRectilinearGrid>
+  </VTKFile>

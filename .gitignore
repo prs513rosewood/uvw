@@ -1,6 +1,6 @@
 __pycache__
 *.pyc
 .*cache
-*.vt*
+*.*vt*
 /uvw.egg-info
 /dist

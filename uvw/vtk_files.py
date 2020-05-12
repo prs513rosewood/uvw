@@ -97,18 +97,23 @@ class RectilinearGrid(VTKFile):
 
         if offsets is None:
             offsets = [0] * len(extent)
-
-        if len(offsets) != len(extent):
+        elif len(offsets) == len(coordinates):
+            offsets = list(offsets)
+            offsets += [0] * (len(extent) - len(offsets))
+        else:
             raise Exception(
                 'Size of offsets should '
-                'match domain dimension {}'.format(len(extent)))
+                'match domain dimension {}'.format(len(coordinates)))
+
+        def fold_extent(acc, couple):
+            offset, extent = couple
+
+            if offset != 0:
+                offset -= 1
+            return acc + "{} {} ".format(offset, offset+extent)
 
         # Create extent string with offsets
-        self.extent = functools.reduce(
-            lambda x, y: x + "{} {} ".format(y[0], y[0]+y[1]),
-            zip(offsets, extent),
-            ""
-        )
+        self.extent = functools.reduce(fold_extent, zip(offsets, extent), "")
 
         self.writer.setDataNodeAttributes({
             "WholeExtent": self.extent
