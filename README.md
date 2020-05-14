@@ -1,7 +1,13 @@
 UVW - Universal VTK Writer
 ==========================
 
-UVW is a small utility library to write VTK files from data contained in Numpy arrays. It handles fully-fledged `ndarrays` defined over {1, 2, 3}-d domains, with arbitrary number of components. There are no constraints on the particular order of components, although copy of data can be avoided if the array is Fortran contiguous, as VTK files are written in Fortran order. Future developments will include multi-process write support.
+UVW is a small utility library to write VTK files from data contained in Numpy
+arrays. It handles fully-fledged `ndarrays` defined over {1, 2, 3}-d domains,
+with arbitrary number of components. There are no constraints on the particular
+order of components, although copy of data can be avoided if the array is
+Fortran contiguous, as VTK files are written in Fortran order. UVW supports
+multi-process writing of VTK files, so that it can be used in an MPI
+environment.
 
 ## Getting Started
 
@@ -10,8 +16,10 @@ Here is how to install and use `uvw`.
 ### Prerequisites
 
 * Python 3. It may work with python 2, but it hasn't been tested.
-* [Numpy](http://www.numpy.org/). This code has been tested with Numpy version 1.14.3.
-* [mpi4py](https://mpi4py.readthedocs.io/en/stable/) only if you wish to use the parallel classes of UVW (i.e. the submodule `uvw.parallel`)
+* [Numpy](http://www.numpy.org/). This code has been tested with Numpy version
+  1.14.3.
+* [mpi4py](https://mpi4py.readthedocs.io/en/stable/) only if you wish to use the
+  parallel classes of UVW (i.e. the submodule `uvw.parallel`)
 
 ### Installing
 
@@ -31,7 +39,8 @@ which will automatically pull `mpi4py` as a dependency.
 
 ### Writing Numpy arrays
 
-As a first example, let us write a multi-component numpy array into a rectilinear grid:
+As a first example, let us write a multi-component numpy array into a
+rectilinear grid:
 
 ```python
 import numpy as np
@@ -95,7 +104,8 @@ with RectilinearGrid(sys.stdout, (x, y)) as grid:
 
 ## Writing in parallel with `mpi4py`
 
-The classes contained in the `uvw.parallel` submodule support multi-process writing using `mpi4py`. Here is a code example:
+The classes contained in the `uvw.parallel` submodule support multi-process
+writing using `mpi4py`. Here is a code example:
 
 ```python
 import numpy as np
@@ -146,7 +156,13 @@ with PRectilinearGrid('pgrid.pvtr', (x, y), offsets[rank]) as rect:
     rect.addCellData(DataArray(proc, range(2), 'proc'))
 ```
 
-As you can see, using `PRectilinearGrid` feels just like using `RectilinearGrid`, except that you need to supply the position of the local grid in the global grid numbering (the `offsets[rank]` in the above example). Note that RecilinearGrid VTK files need an overlap in point data, hence why the global grid size ends up being `(2*N-1, 2*N-1)`. If you forget that overlap, Paraview (or another VTK-based software) may complain that some parts in the global grid (aka "extents" in VTK) are missing data.
+As you can see, using `PRectilinearGrid` feels just like using
+`RectilinearGrid`, except that you need to supply the position of the local grid
+in the global grid numbering (the `offsets[rank]` in the above example). Note
+that RecilinearGrid VTK files need an overlap in point data, hence why the
+global grid size ends up being `(2*N-1, 2*N-1)`. If you forget that overlap,
+Paraview (or another VTK-based software) may complain that some parts in the
+global grid (aka "extents" in VTK) are missing data.
 
 ## List of features
 
@@ -171,12 +187,14 @@ Here is a list of future developments:
 - [ ] Unstructured grid
 - [x] Structured grid
 - [x] Parallel writing (`mpi4py`-enabled `PRectilinearGrid` *is now available!*)
-- [ ] Benchmarking + performance comparison with [pyevtk](https://bitbucket.org/pauloh/pyevtk)
+- [ ] Benchmarking + performance comparison with
+      [pyevtk](https://bitbucket.org/pauloh/pyevtk)
 
 
 ## Developing
 
-These instructions will get you a copy of the project up and running on your local machine for development and testing purposes.
+These instructions will get you a copy of the project up and running on your
+local machine for development and testing purposes.
 
 ### Git repository
 
@@ -186,7 +204,8 @@ First clone the git repository:
 git clone https://github.com/prs513rosewood/uvw.git
 ```
 
-Then you can use pip in development mode (possibly in [virtualenv](https://virtualenv.pypa.io/en/stable/)):
+Then you can use pip in development mode (possibly in
+[virtualenv](https://virtualenv.pypa.io/en/stable/)):
 
 ```
 pip install --user -e .[mpi,tests]
@@ -202,8 +221,10 @@ cd tests; mpiexec -n 2 pytest --with-mpi
 
 ## License
 
-This project is licensed under the MIT License - see the LICENSE.md file for details.
+This project is licensed under the MIT License - see the LICENSE.md file for
+details.
 
 ## Acknowledgments
 
-* [@PurpleBooth](https://github.com/PurpleBooth)'s [README-Template](https://gist.github.com/PurpleBooth/109311bb0361f32d87a2)
+* [@PurpleBooth](https://github.com/PurpleBooth)'s
+  [README-Template](https://gist.github.com/PurpleBooth/109311bb0361f32d87a2)
