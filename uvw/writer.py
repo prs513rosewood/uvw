@@ -1,9 +1,12 @@
 import xml.dom.minidom as dom
-import functools
 import io
+import zlib
 
-import base64
 import numpy as np
+
+from functools import reduce
+from operator import add
+from base64 import b64encode
 
 
 def setAttributes(node, attributes):
@@ -12,12 +15,46 @@ def setAttributes(node, attributes):
         node.setAttribute(*item)
 
 
-def encodeArray(array):
-    # Mandatory number of bytes encoded as uint32
-    nbytes = array.nbytes
-    bytes = base64.b64encode(np.array([nbytes], dtype=np.uint32))
-    bytes += base64.b64encode(array)
-    return bytes
+def encodeArray(array, level):
+    def compress(array):
+        """Compress array with zlib. Returns header and compressed data."""
+        raw_data = array.tobytes()
+
+        max_block_size = 2**15
+
+        # Enough blocks to span whole data
+        nblocks = len(raw_data) // max_block_size + 1
+        last_block_size = len(raw_data) % max_block_size
+
+        # Compress regular blocks
+        compressed_data = [
+            zlib.compress(raw_data[i*max_block_size:(i+1)*max_block_size],
+                          level)
+            for i in range(nblocks-1)
+        ]
+
+        # Compress last (smaller) block
+        compressed_data.append(
+            zlib.compress(raw_data[-last_block_size:], level)
+        )
+
+        # Header data (cf https://vtk.org/Wiki/VTK_XML_Formats#Compressed_Data)
+        usize = max_block_size
+        psize = last_block_size
+        csize = [len(x) for x in compressed_data]
+        header = np.array([nblocks, usize, psize] + csize, dtype=np.uint32)
+        return header.tobytes(), b"".join(compressed_data)
+
+    def raw(array):
+        """Returns header and array data in bytes."""
+        header = np.array([array.nbytes], dtype=np.uint32)
+        return header.tobytes(), array.tobytes()
+
+    if level is not None:
+        data = compress(array)
+    else:
+        data = raw(array)
+    return reduce(add, map(lambda x: b64encode(x).decode(), data))
 
 
 class Component:
@@ -43,13 +80,14 @@ class Component:
 
     def _addArrayNodeData(self, data_array, node, vtk_format):
         if vtk_format == 'ascii':
-            data_as_str = functools.reduce(
+            data_as_str = reduce(
                 lambda x, y: x + str(y) + ' ', data_array.flat_data, "")
             node.appendChild(self.document.createTextNode(data_as_str))
 
         elif vtk_format == 'binary':
             node.appendChild(self.document.createTextNode(
-                    encodeArray(data_array.flat_data).decode('ascii')))
+                encodeArray(data_array.flat_data,
+                            level=self.writer.compression)))
         else:
             raise Exception('Unsupported VTK Format "{}"'.format(vtk_format))
 
@@ -77,6 +115,7 @@ class Writer:
     """Generic XML handler for VTK files"""
 
     def __init__(self, vtk_format,
+                 compression=None,
                  vtk_version='0.1',
                  byte_order='LittleEndian'):
         self.document = dom.getDOMImplementation()  \
@@ -89,6 +128,17 @@ class Writer:
         self.root.appendChild(self.data_node)
         self.size_indicator_bytes = np.dtype(np.uint32).itemsize
         self.append_data_arrays = []
+
+        if compression is not None:
+            self.root.setAttribute('compressor', 'vtkZLibDataCompressor')
+
+            if type(compression) is not int:
+                compression = -1
+            else:
+                if compression not in list(range(-1, 10)):
+                    raise Exception(('compression level {} is not '
+                                    'recognized by zlib').format(compression))
+        self.compression = compression
 
     def setDataNodeAttributes(self, attributes):
         """Set attributes for the entire dataset"""

@@ -8,10 +8,10 @@ import numpy as np
 class VTKFile:
     """Generic VTK file"""
 
-    def __init__(self, filename, filetype):
+    def __init__(self, filename, filetype, compression):
         self.filetype = filetype
         self.filename = filename
-        self.writer = writer.Writer(filetype)
+        self.writer = writer.Writer(filetype, compression)
 
         # Center piece
         self.piece = self.writer.registerPiece()
@@ -20,8 +20,8 @@ class VTKFile:
         self.point_data = self.piece.register('PointData')
         self.cell_data = self.piece.register('CellData')
 
-    def addPointData(self, data_array):
-        self.point_data.registerDataArray(data_array)
+    def addPointData(self, data_array, vtk_format='binary'):
+        self.point_data.registerDataArray(data_array, vtk_format)
 
     def addCellData(self, data_array):
         self.cell_data.registerDataArray(data_array)
@@ -40,8 +40,8 @@ class VTKFile:
 class ImageData(VTKFile):
     """VTK Image data (coordinates given by a range and constant spacing)"""
 
-    def __init__(self, filename, ranges, points):
-        VTKFile.__init__(self, filename, 'ImageData')
+    def __init__(self, filename, ranges, points, compression=None):
+        VTKFile.__init__(self, filename, 'ImageData', compression)
 
         # Computing spacings
         spacings = [(x[1] - x[0]) / (n - 1) for x, n in zip(ranges, points)]
@@ -72,8 +72,8 @@ class ImageData(VTKFile):
 class RectilinearGrid(VTKFile):
     """VTK Rectilinear grid (coordinates are given by 3 seperate ranges)"""
 
-    def __init__(self, filename, coordinates, offsets=None):
-        VTKFile.__init__(self, filename, 'RectilinearGrid')
+    def __init__(self, filename, coordinates, offsets=None, compression=None):
+        VTKFile.__init__(self, filename, 'RectilinearGrid', compression)
 
         # Checking that we actually have a list or tuple
         if type(coordinates).__name__ == 'ndarray':
@@ -134,8 +134,8 @@ class RectilinearGrid(VTKFile):
 class StructuredGrid(VTKFile):
     """VTK Structured grid (coordinates given by a single array of points)"""
 
-    def __init__(self, filename, points, shape):
-        VTKFile.__init__(self, filename, 'StructuredGrid')
+    def __init__(self, filename, points, shape, compression=None):
+        VTKFile.__init__(self, filename, 'StructuredGrid', compression)
 
         if points.ndim != 2:
             raise 'Points should be a 2D array'
