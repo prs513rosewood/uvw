@@ -51,8 +51,8 @@ x = np.linspace(-0.5, 0.5, 10)
 y = np.linspace(-0.5, 0.5, 20)
 z = np.linspace(-0.9, 0.9, 30)
 
-# Creating the file
-grid = RectilinearGrid('grid.vtr', (x, y, z))
+# Creating the file (with possible data compression)
+grid = RectilinearGrid('grid.vtr', (x, y, z), compression=True)
 
 # A centered ball
 x, y, z = np.meshgrid(x, y, z, indexing='ij')
@@ -173,11 +173,13 @@ Here is a list of what is available in UVW:
 - Image data (`.vti`)
 - Rectilinear grid (`.vtr`)
 - Structured grid (`.vts`)
+- Parallel Rectilinear grid (`.pvtr`)
 
 ### Data representation
 
 - ASCII
-- Base64 (uncompressed)
+- Base64 (raw and compressed: the `compression` argument of file constructors
+  can be `True`, `False`, or an integer in `[-1, 9]` for compression levels)
 
 ### Planned developments
 
