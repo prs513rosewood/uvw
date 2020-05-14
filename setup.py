@@ -8,7 +8,7 @@ setuptools.setup(
     version="0.1.0",
     author="Lucas Frérot",
     author_email="lucas.frerot@protonmail.com",
-    description="Universal VTK Writer",
+    description="Universal VTK Writer for Numpy Arrays",
     long_description=long_description,
     long_description_content_type="text/markdown",
     url="https://github.com/prs513rosewood/uvw",
@@ -16,7 +16,7 @@ setuptools.setup(
     install_requires=['numpy'],
     extras_require={
       "mpi": ['mpi4py'],
-      "tests": ['pytest', 'pytest-mpi', 'mpi4py'],
+      "tests": ['pytest', 'pytest-mpi', 'mpi4py', 'vtk'],
     },
     classifiers=(
         "Programming Language :: Python :: 3",
