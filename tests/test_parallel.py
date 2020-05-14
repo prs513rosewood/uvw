@@ -40,11 +40,16 @@ def test_prectilinear_grid():
     rect.addPointData(DataArray(r, range(3), 'R'))
     rect.write()
 
-    reader = vtk.vtkXMLPRectilinearGridReader()
-    reader.SetFileName(out_name)
-    reader.Update()
-    output = reader.GetOutput()
-    vtk_r = vtk_to_numpy(output.GetPointData().GetArray('R'))
+    if rank == 0:
+        reader = vtk.vtkXMLPRectilinearGridReader()
+        reader.SetFileName(out_name)
+        reader.Update()
+        output = reader.GetOutput()
+        vtk_r = vtk_to_numpy(output.GetPointData().GetArray('R'))
+    else:
+        vtk_r = None
+
+    vtk_r = comm.bcast(vtk_r, root=0)
     vtk_r = vtk_r.reshape([4*N-1, N+2, N], order='F')
 
     i, j, k = [int(i) for i in offsets[rank]]
