@@ -18,13 +18,14 @@ def encodeArray(array, level):
     """Encode array data and header in base64."""
     def compress(array):
         """Compress array with zlib. Returns header and compressed data."""
-        raw_data = array.tobytes()
+        raw_data = memoryview(array)  # avoid a copy
+        data_size = raw_data.nbytes
 
         max_block_size = 2**15
 
         # Enough blocks to span whole data
-        nblocks = len(raw_data) // max_block_size + 1
-        last_block_size = len(raw_data) % max_block_size
+        nblocks = data_size // max_block_size + 1
+        last_block_size = data_size % max_block_size
 
         # Compress regular blocks
         compressed_data = [
@@ -48,7 +49,7 @@ def encodeArray(array, level):
     def raw(array):
         """Returns header and array data in bytes."""
         header = np.array([array.nbytes], dtype=np.uint32)
-        return header.tobytes(), array.tobytes()
+        return header.tobytes(), memoryview(array)
 
     if level is not None:
         data = compress(array)
