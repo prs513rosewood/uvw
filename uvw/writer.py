@@ -5,7 +5,6 @@ import zlib
 import numpy as np
 
 from functools import reduce
-from operator import add
 from base64 import b64encode
 
 
@@ -16,6 +15,7 @@ def setAttributes(node, attributes):
 
 
 def encodeArray(array, level):
+    """Encode array data and header in base64."""
     def compress(array):
         """Compress array with zlib. Returns header and compressed data."""
         raw_data = array.tobytes()
@@ -54,7 +54,7 @@ def encodeArray(array, level):
         data = compress(array)
     else:
         data = raw(array)
-    return reduce(add, map(lambda x: b64encode(x).decode(), data))
+    return "".join(map(lambda x: b64encode(x).decode(), data))
 
 
 class Component:
@@ -82,33 +82,29 @@ class Component:
         if vtk_format == 'ascii':
             data_as_str = reduce(
                 lambda x, y: x + str(y) + ' ', data_array.flat_data, "")
-            node.appendChild(self.document.createTextNode(data_as_str))
-
         elif vtk_format == 'binary':
-            node.appendChild(self.document.createTextNode(
-                encodeArray(data_array.flat_data,
-                            level=self.writer.compression)))
+            data_as_str = encodeArray(data_array.flat_data,
+                                      self.writer.compression)
         else:
             raise Exception('Unsupported VTK Format "{}"'.format(vtk_format))
 
+        node.appendChild(self.document.createTextNode(data_as_str))
+
+    def _registerArrayComponent(self, array, name, vtk_format):
+        attributes = array.attributes
+        attributes['format'] = vtk_format
+        return self.register(name, attributes)
+
     def registerDataArray(self, data_array, vtk_format='binary'):
         """Register a DataArray object"""
-        array_component = Component('DataArray', self.node, self.writer)
-        attributes = data_array.attributes
-
-        attributes['format'] = vtk_format
-
-        # Write array data
-        self._addArrayNodeData(data_array, array_component.node, vtk_format)
-
-        setAttributes(array_component.node, attributes)
+        component = self._registerArrayComponent(data_array,
+                                                 'DataArray',
+                                                 vtk_format)
+        self._addArrayNodeData(data_array, component.node, vtk_format)
 
     def registerPDataArray(self, data_array, vtk_format='binary'):
         """Register a DataArray object in p-file"""
-        array_component = Component('PDataArray', self.node, self.writer)
-        attributes = data_array.attributes
-        attributes['format'] = vtk_format
-        setAttributes(array_component.node, attributes)
+        self._registerArrayComponent(data_array, 'PDataArray', vtk_format)
 
 
 class Writer:
