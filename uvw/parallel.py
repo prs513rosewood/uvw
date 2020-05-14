@@ -15,7 +15,7 @@ class PRectilinearGrid(vtk_files.RectilinearGrid):
 
     parent = vtk_files.RectilinearGrid
 
-    def __init__(self, filename, coordinates, offset):
+    def __init__(self, filename, coordinates, offset, compression=None):
         self.pfilename = filename
         self.comm = MPI.COMM_WORLD
         self.rank = self.comm.Get_rank()
@@ -31,6 +31,7 @@ class PRectilinearGrid(vtk_files.RectilinearGrid):
             self.piece_name_template.format(rank=self.rank),
             coordinates,
             offset,
+            compression
         )
 
         # Gather local data extents

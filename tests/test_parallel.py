@@ -11,7 +11,7 @@ from uvw import DataArray
 
 
 @pytest.mark.mpi(min_size=2)
-def test_prectilinear_grid():
+def test_prectilinear_grid(compression_fixture):
     comm = MPI.COMM_WORLD
     rank = comm.Get_rank()
 
@@ -36,7 +36,9 @@ def test_prectilinear_grid():
     xx, yy, zz = np.meshgrid(x, y, z, indexing='ij', sparse=True)
     r = np.sqrt(xx**2 + yy**2 + zz**2)
 
-    rect = PRectilinearGrid(out_name, (x, y, z), offsets[rank])
+    compress = compression_fixture.param
+    rect = PRectilinearGrid(out_name, (x, y, z), offsets[rank], 
+                            compression=compress)
     rect.addPointData(DataArray(r, range(3), 'R'))
     rect.write()
 
