@@ -125,7 +125,7 @@ class Writer:
         self.size_indicator_bytes = np.dtype(np.uint32).itemsize
         self.append_data_arrays = []
 
-        if compression is not None:
+        if compression is not None and compression != False:
             self.root.setAttribute('compressor', 'vtkZLibDataCompressor')
 
             if type(compression) is not int:
@@ -134,6 +134,9 @@ class Writer:
                 if compression not in list(range(-1, 10)):
                     raise Exception(('compression level {} is not '
                                     'recognized by zlib').format(compression))
+        elif not compression:
+            compression = None
+
         self.compression = compression
 
     def setDataNodeAttributes(self, attributes):

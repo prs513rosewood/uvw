@@ -20,6 +20,11 @@ def threeD_data():
     return [x, y, z], r, e_r
 
 
+@pytest.fixture(params=[False, True])
+def compression_fixture(request):
+    return request
+
+
 def get_vtk_data(reader, sstream):
     reader.SetReadFromInputString(True)
     reader.SetInputString(sstream.getvalue())

@@ -18,11 +18,12 @@ from uvw import (
 )
 
 
-def test_rectilinear_grid(threeD_data):
+def test_rectilinear_grid(threeD_data, compression_fixture):
     coords, r, e_r = threeD_data
     f = io.StringIO()
 
-    with RectilinearGrid(f, coords) as rect:
+    compress = compression_fixture.param
+    with RectilinearGrid(f, coords, compression=compress) as rect:
         rect.addPointData(DataArray(r, range(3), 'point'))
         rect.addCellData(DataArray(e_r, range(3), 'cell'))
 
@@ -36,14 +37,16 @@ def test_rectilinear_grid(threeD_data):
     assert all(vtk_e_r == e_r)
 
 
-def test_image_data(threeD_data):
+def test_image_data(threeD_data, compression_fixture):
     coords, r, e_r = threeD_data
     f = io.StringIO()
 
+    compress = compression_fixture.param
     with ImageData(
             f,
             [(min(x), max(x)) for x in coords],
-            [x.size for x in coords]) as fh:
+            [x.size for x in coords],
+            compression=compress) as fh:
         fh.addPointData(DataArray(r, range(3), 'point'))
         fh.addCellData(DataArray(e_r, range(3), 'cell'))
 
@@ -57,7 +60,7 @@ def test_image_data(threeD_data):
     assert all(vtk_e_r == e_r)
 
 
-def test_structured_grid():
+def test_structured_grid(compression_fixture):
     f = io.StringIO()
 
     N = 5
@@ -72,7 +75,8 @@ def test_structured_grid():
 
     points = np.vstack([x.ravel(), y.ravel()]).T
 
-    grid = StructuredGrid(f, points, (N, 5*N))
+    compress = compression_fixture.param
+    grid = StructuredGrid(f, points, (N, 5*N), compression=compress)
 
     data = np.exp(-4*r**2)
 
