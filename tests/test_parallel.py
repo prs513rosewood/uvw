@@ -1,7 +1,10 @@
 import numpy as np
 import pytest
+import vtk
+import os
 
 from mpi4py import MPI
+from vtk.util.numpy_support import vtk_to_numpy
 
 from uvw.parallel import PRectilinearGrid
 from uvw import DataArray
@@ -37,11 +40,29 @@ def test_prectilinear_grid():
     rect.addPointData(DataArray(r, range(3), 'R'))
     rect.write()
 
-    if rank == 0:
-        output = open(out_name, 'r')
-        reference = open('test_prectilinear_grid.ref', 'r')
+    reader = vtk.vtkXMLPRectilinearGridReader()
+    reader.SetFileName(out_name)
+    reader.Update()
+    output = reader.GetOutput()
+    vtk_r = vtk_to_numpy(output.GetPointData().GetArray('R'))
+    vtk_r = vtk_r.reshape([4*N-1, N+2, N], order='F')
 
-        assert output.read() == reference.read()
+    i, j, k = [int(i) for i in offsets[rank]]
+
+    # Adjusting for overlap
+    if offsets[rank][0] != 0:
+        i -= 1
+
+    sub_vtk = vtk_r[i:i+x.size, j:j+y.size, k:k+z.size]
+    assert np.all(sub_vtk == r)
+
+    if rank == 0:
+        try:
+            os.remove(out_name)
+            os.remove('test_prectilinear_grid_rank0.vtr')
+            os.remove('test_prectilinear_grid_rank1.vtr')
+        except:
+            pass
 
 
 if __name__ == '__main__':
