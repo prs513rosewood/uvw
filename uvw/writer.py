@@ -70,26 +70,36 @@ class Component:
     def setAttributes(self, attributes):
         setAttributes(self.node, attributes)
 
-    def register(self, name, attributes={}):
+    def register(self, name, attributes=None):
         """Register a sub-component"""
+        if attributes is None:
+            attributes = {}
+
         if type(attributes) != dict:
             raise Exception(
                 'Cannot register attributes of type ' + str(type(attributes)))
+
         sub_component = Component(name, self.node, self.writer)
         setAttributes(sub_component.node, attributes)
         return sub_component
 
-    def _addArrayNodeData(self, data_array, node, vtk_format):
+    def _addArrayNodeData(self, data_array, component, vtk_format):
         if vtk_format == 'ascii':
-            data_as_str = reduce(
-                lambda x, y: x + str(y) + ' ', data_array.flat_data, "")
+            sstream = io.StringIO()
+            np.savetxt(sstream, data_array.flat_data, newline=' ')
+            data_as_str = sstream.getvalue()
+            # reduce(lambda x, y: x + str(y) + ' ', data_array.flat_data, "")
         elif vtk_format == 'binary':
             data_as_str = encodeArray(data_array.flat_data,
                                       self.writer.compression)
+        elif vtk_format == 'append':
+            self.writer.append_data_arrays[component] = data_array
         else:
             raise Exception('Unsupported VTK Format "{}"'.format(vtk_format))
 
-        node.appendChild(self.document.createTextNode(data_as_str))
+        if vtk_format != 'append':
+            component.node.appendChild(
+                self.document.createTextNode(data_as_str))
 
     def _registerArrayComponent(self, array, name, vtk_format):
         attributes = array.attributes
@@ -101,7 +111,7 @@ class Component:
         component = self._registerArrayComponent(data_array,
                                                  'DataArray',
                                                  vtk_format)
-        self._addArrayNodeData(data_array, component.node, vtk_format)
+        self._addArrayNodeData(data_array, component, vtk_format)
 
     def registerPDataArray(self, data_array, vtk_format='binary'):
         """Register a DataArray object in p-file"""
@@ -124,9 +134,9 @@ class Writer:
         self.data_node = self.document.createElement(vtk_format)
         self.root.appendChild(self.data_node)
         self.size_indicator_bytes = np.dtype(np.uint32).itemsize
-        self.append_data_arrays = []
+        self.append_data_arrays = {}
 
-        if compression is not None and compression != False:
+        if compression is not None and compression is not False:
             self.root.setAttribute('compressor', 'vtkZLibDataCompressor')
 
             if type(compression) is not int:
@@ -150,23 +160,30 @@ class Writer:
                                       attributes)
 
     def registerComponent(self, name, parent, attributes={}):
+        """Register a Component to a parent Component with set attributes"""
         comp = Component(name, parent, self)
         setAttributes(comp.node, attributes)
         return comp
 
     def registerAppend(self):
+        """Register AppendedData node (should only be called once)"""
         append_node = Component('AppendedData', self.root, self)
-        setAttributes(append_node.node, {'format': 'base64'})
+        append_node.setAttributes({'format': 'base64'})
         self.root.appendChild(append_node.node)
-        data_str = b"_"
 
-        for data_array in self.append_data_arrays:
-            data_str += encodeArray(data_array.flat_data)
+        data_str = "_"
+        offset = 0
+        for component, data in self.append_data_arrays.items():
+            component.setAttributes({'offset': str(offset)})
+            data_b64 = encodeArray(data.flat_data, self.compression)
+            data_str += data_b64
+            offset += len(data_b64)
 
-        text = self.document.createTextNode(data_str.decode('ascii'))
+        text = self.document.createTextNode(data_str)
         append_node.node.appendChild(text)
 
     def write(self, fd):
+        """Write to file descriptor"""
         if type(fd) == str:
             with open(fd, 'w') as file:
                 self.write(file)

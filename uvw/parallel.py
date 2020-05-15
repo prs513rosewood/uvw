@@ -78,15 +78,15 @@ class PRectilinearGrid(vtk_files.RectilinearGrid):
             array = data_array.DataArray(coord, [0], prefix + '_coordinates')
             pcoordinates.registerPDataArray(array)
 
-    def addPointData(self, array):
-        self.parent.addPointData(self, array)
+    def addPointData(self, array, *args, **kwargs):
+        self.parent.addPointData(self, array, *args, **kwargs)
         if self.rank == MASTER_RANK:
-            self.ppoint_data.registerPDataArray(array)
+            self.ppoint_data.registerPDataArray(array, *args, **kwargs)
 
-    def addCellData(self, array):
-        self.parent.addCellData(self, array)
+    def addCellData(self, array, *args, **kwargs):
+        self.parent.addCellData(self, array, *args, **kwargs)
         if self.rank == MASTER_RANK:
-            self.pcell_data.registerPDataArray(array)
+            self.pcell_data.registerPDataArray(array, *args, **kwargs)
 
     def write(self):
         self.parent.write(self)

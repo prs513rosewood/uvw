@@ -18,14 +18,15 @@ from uvw import (
 )
 
 
-def test_rectilinear_grid(threeD_data, compression_fixture):
+def test_rectilinear_grid(threeD_data, compression_fixture, format_fixture):
     coords, r, e_r = threeD_data
     f = io.StringIO()
 
     compress = compression_fixture.param
+    format = format_fixture.param
     with RectilinearGrid(f, coords, compression=compress) as rect:
-        rect.addPointData(DataArray(r, range(3), 'point'))
-        rect.addCellData(DataArray(e_r, range(3), 'cell'))
+        rect.addPointData(DataArray(r, range(3), 'point'), vtk_format=format)
+        rect.addCellData(DataArray(e_r, range(3), 'cell'), vtk_format=format)
 
     reader = vtkXMLRectilinearGridReader()
     vtk_r, vtk_e_r = get_vtk_data(reader, f)
@@ -37,18 +38,19 @@ def test_rectilinear_grid(threeD_data, compression_fixture):
     assert all(vtk_e_r == e_r)
 
 
-def test_image_data(threeD_data, compression_fixture):
+def test_image_data(threeD_data, compression_fixture, format_fixture):
     coords, r, e_r = threeD_data
     f = io.StringIO()
 
     compress = compression_fixture.param
+    format = format_fixture.param
     with ImageData(
             f,
             [(min(x), max(x)) for x in coords],
             [x.size for x in coords],
             compression=compress) as fh:
-        fh.addPointData(DataArray(r, range(3), 'point'))
-        fh.addCellData(DataArray(e_r, range(3), 'cell'))
+        fh.addPointData(DataArray(r, range(3), 'point'), vtk_format=format)
+        fh.addCellData(DataArray(e_r, range(3), 'cell'), vtk_format=format)
 
     reader = vtkXMLImageDataReader()
     vtk_r, vtk_e_r = get_vtk_data(reader, f)
@@ -60,7 +62,7 @@ def test_image_data(threeD_data, compression_fixture):
     assert all(vtk_e_r == e_r)
 
 
-def test_structured_grid(compression_fixture):
+def test_structured_grid(compression_fixture, format_fixture):
     f = io.StringIO()
 
     N = 5
@@ -76,11 +78,13 @@ def test_structured_grid(compression_fixture):
     points = np.vstack([x.ravel(), y.ravel()]).T
 
     compress = compression_fixture.param
+    format = format_fixture.param
     grid = StructuredGrid(f, points, (N, 5*N), compression=compress)
 
     data = np.exp(-4*r**2)
 
-    grid.addPointData(DataArray(data, reversed(range(2)), 'data'))
+    grid.addPointData(DataArray(data, reversed(range(2)), 'data'),
+                      vtk_format=format)
     grid.write()
 
     reader = vtkXMLStructuredGridReader()

@@ -3,6 +3,7 @@ import numpy as np
 
 from vtk.util.numpy_support import vtk_to_numpy as v2n
 
+
 @pytest.fixture
 def threeD_data():
     N = 4
@@ -22,6 +23,11 @@ def threeD_data():
 
 @pytest.fixture(params=[False, True])
 def compression_fixture(request):
+    return request
+
+
+@pytest.fixture(params=['ascii', 'binary', 'append'])
+def format_fixture(request):
     return request
 
 
