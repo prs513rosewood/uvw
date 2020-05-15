@@ -1,0 +1,14 @@
+dist: xenial
+language: python
+python: 3.7.3
+
+addons:
+    apt:
+        packages:
+            - openmpi-bin
+            - libopenmpi-dev
+
+install:
+    pip install -e .[tests]
+script:
+    - pytest --cov=uvw tests

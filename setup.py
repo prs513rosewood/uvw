@@ -16,7 +16,7 @@ setuptools.setup(
     install_requires=['numpy'],
     extras_require={
       "mpi": ['mpi4py'],
-      "tests": ['pytest', 'pytest-mpi', 'mpi4py', 'vtk'],
+      "tests": ['pytest', 'pytest-mpi', 'pytest-cov', 'mpi4py', 'vtk'],
     },
     classifiers=(
         "Programming Language :: Python :: 3",

@@ -1,5 +1,6 @@
 UVW - Universal VTK Writer
 ==========================
+![travis-badge](https://travis-ci.com/prs513rosewood/uvw.svg?branch=master)
 
 UVW is a small utility library to write VTK files from data contained in Numpy
 arrays. It handles fully-fledged `ndarrays` defined over {1, 2, 3}-d domains,
