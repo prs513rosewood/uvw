@@ -9,8 +9,8 @@ addons:
             - libopenmpi-dev
 
 install:
-    pip install -e .[tests]
-    pip install coveralls
+    - pip install -e .[tests]
+    - pip install coveralls
 script:
     - pytest --cov=uvw tests
 after_success:
