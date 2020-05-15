@@ -90,7 +90,7 @@ class RectilinearGrid(VTKFile):
 
         for coord in self.coordinates:
             if coord.ndim != 1:
-                raise Exception(
+                raise ValueError(
                     'Coordinate array should have only one dimension'
                     + ' (has {})'.format(coord.ndim))
             extent.append(coord.size-1)
@@ -101,7 +101,7 @@ class RectilinearGrid(VTKFile):
             offsets = list(offsets)
             offsets += [0] * (len(extent) - len(offsets))
         else:
-            raise Exception(
+            raise ValueError(
                 'Size of offsets should '
                 'match domain dimension {}'.format(len(coordinates)))
 
@@ -109,7 +109,7 @@ class RectilinearGrid(VTKFile):
             offset, extent = couple
 
             if offset != 0:
-                offset -= 1
+                offset -= 1  # pragma: no cover
             return acc + "{} {} ".format(offset, offset+extent)
 
         # Create extent string with offsets
@@ -138,7 +138,7 @@ class StructuredGrid(VTKFile):
         VTKFile.__init__(self, filename, 'StructuredGrid', compression)
 
         if points.ndim != 2:
-            raise 'Points should be a 2D array'
+            raise ValueError('Points should be a 2D array')
 
         # Completing the missing coordinates
         points_3d = np.zeros((points.shape[0], 3))

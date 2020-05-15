@@ -4,21 +4,39 @@ import numpy as np
 from vtk.util.numpy_support import vtk_to_numpy as v2n
 
 
-@pytest.fixture
-def threeD_data():
+@pytest.fixture(params=[1, 2, 3])
+def field_data(request):
     N = 4
 
-    x = np.linspace(0, 1, N*2)
-    y = np.linspace(0, 1, N+2)
-    z = np.linspace(0, 1, N)
+    dim = request.param
 
-    xx, yy, zz = np.meshgrid(x, y, z, indexing='ij', sparse=True)
-    r = np.sqrt(xx**2 + yy**2 + zz**2)
+    if dim == 1:
+        x = np.linspace(0, 1, N*2)
+        coords = [x]
+        r = np.abs(x)
+
+    if dim == 2:
+        x = np.linspace(0, 1, N*2)
+        y = np.linspace(0, 1, N+2)
+        coords = [x, y]
+
+        xx, yy = np.meshgrid(x, y, indexing='ij', sparse=True)
+        r = np.sqrt(xx**2 + yy**2)
+
+    if dim == 3:
+        x = np.linspace(0, 1, N*2)
+        y = np.linspace(0, 1, N+2)
+        z = np.linspace(0, 1, N)
+        coords = [x, y, z]
+
+        xx, yy, zz = np.meshgrid(x, y, z, indexing='ij', sparse=True)
+        r = np.sqrt(xx**2 + yy**2 + zz**2)
+
     e_r = np.zeros([s - 1 for s in r.shape] + [3, 3])
-    e_r[0, 0, 0, :, :] = np.array([[0, 1, 0], [1, 0, 0], [0, 1, 1]])
-    e_r[-1, 0, 0, :, :] = np.eye(3)
+    e_r[..., :, :] = np.array([[0, 1, 0], [1, 0, 0], [0, 1, 1]])
+    e_r[..., :, :] = np.eye(3)
 
-    return [x, y, z], r, e_r
+    return coords, r, e_r
 
 
 @pytest.fixture(params=[False, True])
@@ -32,9 +50,19 @@ def format_fixture(request):
 
 
 def get_vtk_data(reader, sstream):
-    reader.SetReadFromInputString(True)
-    reader.SetInputString(sstream.getvalue())
+    if type(sstream) is str:
+        reader.SetFileName(sstream)
+    else:
+        reader.SetReadFromInputString(True)
+        reader.SetInputString(sstream.getvalue())
     reader.Update()
     output = reader.GetOutput()
     return v2n(output.GetPointData().GetArray('point')), \
         v2n(output.GetCellData().GetArray('cell'))
+
+
+def transp(dim):
+    trans = list(range(dim+2))
+    trans[-2], trans[-1] = trans[-1], trans[-2]
+    return trans
+

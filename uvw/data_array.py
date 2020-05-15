@@ -19,7 +19,8 @@ class DataArray:
         spatial_axes = list(spatial_axes)
 
         if data.ndim < len(spatial_axes):
-            raise Exception('Dimensions of data smaller than space dimensions')
+            raise ValueError(
+                'Dimensions of data smaller than space dimensions')
 
         for ax in spatial_axes:
             axes.remove(ax)
@@ -29,8 +30,10 @@ class DataArray:
 
         if components_order == 'C':
             axes.reverse()
+        elif components_order == 'F':  # pragma: no cover
+            pass
         else:
-            raise Exception('Unrecognized components order')
+            raise ValueError('Unrecognized components order')
 
         axes += spatial_axes
 
@@ -43,5 +46,5 @@ class DataArray:
             "NumberOfComponents": str(nb_components)
         }
 
-    def __str__(self):
+    def __str__(self):  # pragma: no cover
         return self.attributes.__str__()

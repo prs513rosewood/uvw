@@ -8,7 +8,7 @@ from vtk import (
         vtkXMLStructuredGridReader,
 )
 from vtk.util.numpy_support import vtk_to_numpy
-from conftest import get_vtk_data
+from conftest import get_vtk_data, transp
 
 from uvw import (
     ImageData,
@@ -18,28 +18,36 @@ from uvw import (
 )
 
 
-def test_rectilinear_grid(threeD_data, compression_fixture, format_fixture):
-    coords, r, e_r = threeD_data
+def test_rectilinear_grid(field_data, compression_fixture, format_fixture):
+    coords, r, e_r = field_data
+    dim = r.ndim
     f = io.StringIO()
 
     compress = compression_fixture.param
     format = format_fixture.param
-    with RectilinearGrid(f, coords, compression=compress) as rect:
-        rect.addPointData(DataArray(r, range(3), 'point'), vtk_format=format)
-        rect.addCellData(DataArray(e_r, range(3), 'cell'), vtk_format=format)
+    rect = RectilinearGrid(f, coords, compression=compress)
+    rect.addPointData(DataArray(r, range(dim), 'point'), vtk_format=format)
+    rect.addCellData(DataArray(e_r, range(dim), 'cell'), vtk_format=format)
+    rect.write()
 
     reader = vtkXMLRectilinearGridReader()
-    vtk_r, vtk_e_r = get_vtk_data(reader, f)
 
-    vtk_r = vtk_r.reshape(r.shape, order='F')
-    vtk_e_r = vtk_e_r.reshape(e_r.shape, order='F').transpose((0, 1, 2, 4, 3))
+    # Testing the xml pretty print output as well
+    pretty_sstream = io.StringIO(str(rect.writer))
 
-    assert all(vtk_r == r)
-    assert all(vtk_e_r == e_r)
+    for ss in [f, pretty_sstream]:
+        vtk_r, vtk_e_r = get_vtk_data(reader, ss)
+
+        vtk_r = vtk_r.reshape(r.shape, order='F')
+        vtk_e_r = vtk_e_r.reshape(e_r.shape, order='F').transpose(transp(dim))
+
+        assert all(vtk_r == r)
+        assert all(vtk_e_r == e_r)
 
 
-def test_image_data(threeD_data, compression_fixture, format_fixture):
-    coords, r, e_r = threeD_data
+def test_image_data(field_data, compression_fixture, format_fixture):
+    coords, r, e_r = field_data
+    dim = r.ndim
     f = io.StringIO()
 
     compress = compression_fixture.param
@@ -49,14 +57,14 @@ def test_image_data(threeD_data, compression_fixture, format_fixture):
             [(min(x), max(x)) for x in coords],
             [x.size for x in coords],
             compression=compress) as fh:
-        fh.addPointData(DataArray(r, range(3), 'point'), vtk_format=format)
-        fh.addCellData(DataArray(e_r, range(3), 'cell'), vtk_format=format)
+        fh.addPointData(DataArray(r, range(dim), 'point'), vtk_format=format)
+        fh.addCellData(DataArray(e_r, range(dim), 'cell'), vtk_format=format)
 
     reader = vtkXMLImageDataReader()
     vtk_r, vtk_e_r = get_vtk_data(reader, f)
 
     vtk_r = vtk_r.reshape(r.shape, order='F')
-    vtk_e_r = vtk_e_r.reshape(e_r.shape, order='F').transpose((0, 1, 2, 4, 3))
+    vtk_e_r = vtk_e_r.reshape(e_r.shape, order='F').transpose(transp(dim))
 
     assert all(vtk_r == r)
     assert all(vtk_e_r == e_r)

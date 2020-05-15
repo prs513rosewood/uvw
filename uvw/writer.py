@@ -76,7 +76,7 @@ class Component:
             attributes = {}
 
         if type(attributes) != dict:
-            raise Exception(
+            raise ValueError(
                 'Cannot register attributes of type ' + str(type(attributes)))
 
         sub_component = Component(name, self.node, self.writer)
@@ -95,7 +95,7 @@ class Component:
         elif vtk_format == 'append':
             self.writer.append_data_arrays[component] = data_array
         else:
-            raise Exception('Unsupported VTK Format "{}"'.format(vtk_format))
+            raise ValueError('Unsupported VTK Format "{}"'.format(vtk_format))
 
         if vtk_format != 'append':
             component.node.appendChild(
@@ -143,8 +143,10 @@ class Writer:
                 compression = -1
             else:
                 if compression not in list(range(-1, 10)):
-                    raise Exception(('compression level {} is not '
-                                    'recognized by zlib').format(compression))
+                    raise ValueError(
+                        ('compression level {} is not '
+                         'recognized by zlib').format(compression)
+                    )
         elif not compression:
             compression = None
 
@@ -184,14 +186,14 @@ class Writer:
 
     def write(self, fd):
         """Write to file descriptor"""
-        if type(fd) == str:
+        if type(fd) is str:
             with open(fd, 'w') as file:
                 self.write(file)
         elif issubclass(type(fd), io.TextIOBase):
             self.document.writexml(fd, indent="\n  ", addindent="  ")
         else:
-            raise RuntimeError("Expected a path or "
-                               + "file handle, got {}".format(type(fd)))
+            raise ValueError("Expected a path or "
+                             + "file descriptor, got {}".format(type(fd)))
 
     def __str__(self):
         """Print XML to string"""
