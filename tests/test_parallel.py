@@ -6,37 +6,60 @@ import os
 from mpi4py import MPI
 from vtk.util.numpy_support import vtk_to_numpy
 from vtk import vtkXMLPRectilinearGridReader
-from conftest import get_vtk_data, transp
+from conftest import get_vtk_data
 from numpy import all
 
 from uvw.parallel import PRectilinearGrid
 from uvw import DataArray
 
 
-def test_prectilinear_grid(field_data, compression_fixture, format_fixture):
+def clean(f):
+    try:
+        os.remove(f.pfilename)
+        os.remove(f.filename)
+    except FileNotFoundError:
+        pass
+
+
+@pytest.mark.mpi_skip
+def test_prectilinear_grid(field_data,
+                           compression_fixture,
+                           format_fixture,
+                           ordering_fixture):
     coords, r, e_r = field_data
     dim = r.ndim
     out_name = 'test_prectilinear_grid.pvtr'
 
     compress = compression_fixture.param
     format = format_fixture.param
-    with PRectilinearGrid(out_name,
-                          coords, dim * [0], compression=compress) as rect:
-        rect.init_master(None)  # useless here: for coverage only
-        rect.addPointData(DataArray(r, range(dim), 'point'), vtk_format=format)
-        rect.addCellData(DataArray(e_r, range(dim), 'cell'), vtk_format=format)
+    rect = PRectilinearGrid(out_name,
+                            coords, dim * [0], compression=compress)
+    rect.init_master(None)  # useless here: for coverage only
+    rect.addPointData(
+        DataArray(
+            r, range(dim), 'point', components_order=ordering_fixture.param
+        ),
+        vtk_format=format,
+    )
+    rect.addCellData(
+        DataArray(
+            e_r, range(dim), 'cell', components_order=ordering_fixture.param
+        ),
+        vtk_format=format,
+    )
+    rect.write()
 
     reader = vtkXMLPRectilinearGridReader()
     vtk_r, vtk_e_r = get_vtk_data(reader, out_name)
 
     vtk_r = vtk_r.reshape(r.shape, order='F')
-    vtk_e_r = vtk_e_r.reshape(e_r.shape, order='F').transpose(transp(dim))
+    vtk_e_r = vtk_e_r.reshape(e_r.shape, order='F') \
+                     .transpose(ordering_fixture.transp(dim))
 
     assert all(vtk_r == r)
     assert all(vtk_e_r == e_r)
 
-    os.remove(out_name)
-    os.remove('test_prectilinear_grid_rank0.vtr')
+    clean(rect)
 
 
 @pytest.mark.mpi(min_size=2)
@@ -93,13 +116,7 @@ def test_prectilinear_grid_mpi(compression_fixture, format_fixture):
     sub_vtk = vtk_r[i:i+x.size, j:j+y.size, k:k+z.size]
     assert np.all(sub_vtk == r)
 
-    if rank == 0:
-        try:
-            os.remove(out_name)
-            os.remove('test_prectilinear_grid_mpi_rank0.vtr')
-            os.remove('test_prectilinear_grid_mpi_rank1.vtr')
-        except FileNotFoundError:
-            pass
+    clean(rect)
 
 
 if __name__ == '__main__':

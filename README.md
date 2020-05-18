@@ -220,7 +220,9 @@ pip install --user -e .[mpi,tests]
 The tests can be run using [pytest](https://docs.pytest.org/en/latest/):
 
 ```
-cd tests; mpiexec -n 2 pytest --with-mpi
+pytest
+# or for tests with mpi
+mpiexec -n 2 pytest --with-mpi
 ```
 
 ## License

@@ -34,7 +34,6 @@ def field_data(request):
 
     e_r = np.zeros([s - 1 for s in r.shape] + [3, 3])
     e_r[..., :, :] = np.array([[0, 1, 0], [1, 0, 0], [0, 1, 1]])
-    e_r[..., :, :] = np.eye(3)
 
     return coords, r, e_r
 
@@ -61,8 +60,12 @@ def get_vtk_data(reader, sstream):
         v2n(output.GetCellData().GetArray('cell'))
 
 
-def transp(dim):
-    trans = list(range(dim+2))
-    trans[-2], trans[-1] = trans[-1], trans[-2]
-    return trans
-
+@pytest.fixture(params=['C', 'F'])
+def ordering_fixture(request):
+    def transp(dim):
+        trans = list(range(dim+2))
+        if request.param == 'C':
+            trans[-2], trans[-1] = trans[-1], trans[-2]
+        return trans
+    request.transp = transp
+    return request

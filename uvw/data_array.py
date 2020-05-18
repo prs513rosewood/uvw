@@ -30,7 +30,7 @@ class DataArray:
 
         if components_order == 'C':
             axes.reverse()
-        elif components_order == 'F':  # pragma: no cover
+        elif components_order == 'F':
             pass
         else:
             raise ValueError('Unrecognized components order')
