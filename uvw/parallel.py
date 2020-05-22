@@ -1,6 +1,7 @@
 from . import writer
-from . import data_array
 from . import vtk_files
+
+from .data_array import DataArray
 
 import functools
 
@@ -10,20 +11,50 @@ from mpi4py import MPI
 MASTER_RANK = 0
 
 
+def MPIWrapper(cls):
+
+    orig_addPointData = cls.addPointData
+    orig_addCellData = cls.addCellData
+    orig_write = cls.write
+
+    def addPointData(self, array, *args, **kwargs):
+        orig_addPointData(self, array, *args, **kwargs)
+        if self.rank == MASTER_RANK:
+            self.ppoint_data.registerPDataArray(array, *args, **kwargs)
+
+    def addCellData(self, array, *args, **kwargs):
+        orig_addCellData(self, array, *args, **kwargs)
+        if self.rank == MASTER_RANK:
+            self.pcell_data.registerPDataArray(array, *args, **kwargs)
+
+    def write(self):
+        orig_write(self)
+        if self.rank == MASTER_RANK:
+            self.pwriter.write(self.pfilename)
+
+    cls.addPointData = addPointData
+    cls.addCellData = addCellData
+    cls.write = write
+    return cls
+
+
+@MPIWrapper
 class PRectilinearGrid(vtk_files.RectilinearGrid):
     """Rectilinear grid parallel writer"""
 
     parent = vtk_files.RectilinearGrid
 
-    def __init__(self, filename, coordinates, offset, compression=None):
+    def __init__(self, filename, coordinates, offset, **kwargs):
         self.pfilename = filename
         self.comm = MPI.COMM_WORLD
         self.rank = self.comm.Get_rank()
 
         # Construct name of piece file
-        fragmented_name = splitext(filename)
-        self.piece_name_template = (fragmented_name[0] +
-                                    '_rank{rank}.' + fragmented_name[1][2:])
+        extension = splitext(filename)[1]
+        piece_extension = extension.replace('p', '')
+        self.piece_name_template = (
+            filename.replace(extension, '.rank{rank}') + piece_extension
+        )
 
         # Name of piece file associated to rank
         self.parent.__init__(
@@ -31,7 +62,7 @@ class PRectilinearGrid(vtk_files.RectilinearGrid):
             self.piece_name_template.format(rank=self.rank),
             coordinates,
             offset,
-            compression
+            **kwargs
         )
 
         # Gather local data extents
@@ -48,6 +79,9 @@ class PRectilinearGrid(vtk_files.RectilinearGrid):
                                                           data_node)
         self.pcell_data = self.pwriter.registerComponent('PCellData',
                                                          data_node)
+        # Register coordinates
+        pcoordinates = self.pwriter.registerComponent('PCoordinates',
+                                                      data_node)
 
         for rank, extent in enumerate(extents):
             self.pwriter.registerPiece({
@@ -70,25 +104,6 @@ class PRectilinearGrid(vtk_files.RectilinearGrid):
             'WholeExtent': extent
         })
 
-        # Register coordinates
-        pcoordinates = self.pwriter.registerComponent('PCoordinates',
-                                                      data_node)
-
         for coord, prefix in zip(self.coordinates, ('x', 'y', 'z')):
-            array = data_array.DataArray(coord, [0], prefix + '_coordinates')
+            array = DataArray(coord, [0], prefix + '_coordinates')
             pcoordinates.registerPDataArray(array)
-
-    def addPointData(self, array, *args, **kwargs):
-        self.parent.addPointData(self, array, *args, **kwargs)
-        if self.rank == MASTER_RANK:
-            self.ppoint_data.registerPDataArray(array, *args, **kwargs)
-
-    def addCellData(self, array, *args, **kwargs):
-        self.parent.addCellData(self, array, *args, **kwargs)
-        if self.rank == MASTER_RANK:
-            self.pcell_data.registerPDataArray(array, *args, **kwargs)
-
-    def write(self):
-        self.parent.write(self)
-        if self.rank == MASTER_RANK:
-            self.pwriter.write(self.pfilename)
