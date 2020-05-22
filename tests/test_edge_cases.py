@@ -61,3 +61,8 @@ def test_structured_fails():
     x = np.array([1, 2])
     with pytest.raises(ValueError):
         StructuredGrid('', x, (1, 2))
+
+def test_context_manger():
+    x = np.array([1, 2])
+    with RectilinearGrid('', x):
+        raise Exception('Yo')

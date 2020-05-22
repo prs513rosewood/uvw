@@ -125,6 +125,14 @@ class Writer:
                  compression=None,
                  vtk_version='0.1',
                  byte_order='LittleEndian'):
+        """
+        Create an XML writer
+
+        :param vtk_format: format of VTK file
+        :param compression: compression level (see zlib), True, False or None
+        :param vtk_version: version number of VTK file
+        :param byte_order: byte order of binary data
+        """
         self.document = dom.getDOMImplementation()  \
                            .createDocument(None, 'VTKFile', None)
         self.root = self.document.documentElement

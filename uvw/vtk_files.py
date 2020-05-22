@@ -8,10 +8,17 @@ import numpy as np
 class VTKFile:
     """Generic VTK file"""
 
-    def __init__(self, filename, filetype, compression):
+    def __init__(self, filename, filetype, **kwargs):
+        """
+        Create a generic VTK file
+
+        :param filename: name of file or file handle
+        :param filetype: VTK format of file
+        :param **kwargs: parameters forwarded to Writer
+        """
         self.filetype = filetype
         self.filename = filename
-        self.writer = writer.Writer(filetype, compression)
+        self.writer = writer.Writer(filetype, **kwargs)
 
         # Center piece
         self.piece = self.writer.registerPiece()
@@ -21,27 +28,49 @@ class VTKFile:
         self.cell_data = self.piece.register('CellData')
 
     def addPointData(self, data_array, vtk_format='binary'):
+        """
+        Add a DataArray instance to the PointData section of the file
+
+        :param data_array: DataArray instance
+        :param vtk_format: data format. Can be:
+            - ``'ascii'``: data is written with numpy.savetxt in-place
+            - ``'binaray'``: data is written in base64 (with possible
+            compression) in-place
+            - ``'append'``: data is written in base64 (with possible
+            compression) in the ``AppendData`` section
+        """
         self.point_data.registerDataArray(data_array, vtk_format)
 
     def addCellData(self, data_array, vtk_format='binary'):
+        """
+        Add a DataArray instance to the PointData section of the file
+
+        Arguments are identical to `addPointData`
+        """
         self.cell_data.registerDataArray(data_array, vtk_format)
 
     def write(self):
+        """
+        Write XML to file.
+        """
         self.writer.registerAppend()
         self.writer.write(self.filename)
 
     def __enter__(self):
         return self
 
-    def __exit__(self, *args):
-        self.write()
+    def __exit__(self, type, value, traceback):
+        if type is None:
+            # Only write if no error
+            self.write()
+        return True
 
 
 class ImageData(VTKFile):
     """VTK Image data (coordinates given by a range and constant spacing)"""
 
-    def __init__(self, filename, ranges, points, compression=None):
-        VTKFile.__init__(self, filename, 'ImageData', compression)
+    def __init__(self, filename, ranges, points, **kwargs):
+        VTKFile.__init__(self, filename, 'ImageData', **kwargs)
 
         # Computing spacings
         spacings = [(x[1] - x[0]) / (n - 1) for x, n in zip(ranges, points)]
@@ -72,8 +101,8 @@ class ImageData(VTKFile):
 class RectilinearGrid(VTKFile):
     """VTK Rectilinear grid (coordinates are given by 3 seperate ranges)"""
 
-    def __init__(self, filename, coordinates, offsets=None, compression=None):
-        VTKFile.__init__(self, filename, 'RectilinearGrid', compression)
+    def __init__(self, filename, coordinates, offsets=None, **kwargs):
+        VTKFile.__init__(self, filename, 'RectilinearGrid', **kwargs)
 
         # Checking that we actually have a list or tuple
         if type(coordinates).__name__ == 'ndarray':
@@ -134,8 +163,8 @@ class RectilinearGrid(VTKFile):
 class StructuredGrid(VTKFile):
     """VTK Structured grid (coordinates given by a single array of points)"""
 
-    def __init__(self, filename, points, shape, compression=None):
-        VTKFile.__init__(self, filename, 'StructuredGrid', compression)
+    def __init__(self, filename, points, shape, **kwargs):
+        VTKFile.__init__(self, filename, 'StructuredGrid', **kwargs)
 
         if points.ndim != 2:
             raise ValueError('Points should be a 2D array')
