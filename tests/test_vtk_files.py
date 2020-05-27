@@ -3,9 +3,9 @@ import numpy as np
 
 from numpy import all, min, max
 from vtk import (
-        vtkXMLRectilinearGridReader,
-        vtkXMLImageDataReader,
-        vtkXMLStructuredGridReader,
+    vtkXMLRectilinearGridReader,
+    vtkXMLImageDataReader,
+    vtkXMLStructuredGridReader,
 )
 from vtk.util.numpy_support import vtk_to_numpy
 from conftest import get_vtk_data
@@ -22,7 +22,7 @@ def test_rectilinear_grid(field_data,
                           compression_fixture,
                           format_fixture,
                           ordering_fixture):
-    coords, r, e_r = field_data
+    coords, r, e_r, field = field_data
     dim = r.ndim
     f = io.StringIO()
 
@@ -32,11 +32,14 @@ def test_rectilinear_grid(field_data,
     rect.addPointData(
         DataArray(r, range(dim), 'point', ordering_fixture.param),
         vtk_format=format
-    )
-    rect.addCellData(
+    ).addCellData(
         DataArray(e_r, range(dim), 'cell', ordering_fixture.param),
         vtk_format=format
+    ).addFieldData(
+        DataArray(field, [0], 'field', ordering_fixture.param),
+        vtk_format=format
     )
+
     rect.write()
 
     reader = vtkXMLRectilinearGridReader()
@@ -45,7 +48,7 @@ def test_rectilinear_grid(field_data,
     pretty_sstream = io.StringIO(str(rect.writer))
 
     for ss in [f, pretty_sstream]:
-        vtk_r, vtk_e_r = get_vtk_data(reader, ss)
+        vtk_r, vtk_e_r, vtk_f = get_vtk_data(reader, ss)
 
         vtk_r = vtk_r.reshape(r.shape, order='F')
         vtk_e_r = vtk_e_r.reshape(e_r.shape, order='F') \
@@ -53,13 +56,14 @@ def test_rectilinear_grid(field_data,
 
         assert all(vtk_r == r)
         assert all(vtk_e_r == e_r)
+        assert all(vtk_f == field)
 
 
 def test_image_data(field_data,
                     compression_fixture,
                     format_fixture,
                     ordering_fixture):
-    coords, r, e_r = field_data
+    coords, r, e_r, field = field_data
     dim = r.ndim
     f = io.StringIO()
 
@@ -73,14 +77,16 @@ def test_image_data(field_data,
         fh.addPointData(
             DataArray(r, range(dim), 'point', ordering_fixture.param),
             vtk_format=format
-        )
-        fh.addCellData(
+        ).addCellData(
             DataArray(e_r, range(dim), 'cell', ordering_fixture.param),
+            vtk_format=format
+        ).addFieldData(
+            DataArray(field, [0], 'field', ordering_fixture.param),
             vtk_format=format
         )
 
     reader = vtkXMLImageDataReader()
-    vtk_r, vtk_e_r = get_vtk_data(reader, f)
+    vtk_r, vtk_e_r, vtk_f = get_vtk_data(reader, f)
 
     vtk_r = vtk_r.reshape(r.shape, order='F')
     vtk_e_r = vtk_e_r.reshape(e_r.shape, order='F') \
@@ -88,6 +94,7 @@ def test_image_data(field_data,
 
     assert all(vtk_r == r)
     assert all(vtk_e_r == e_r)
+    assert all(vtk_f == field)
 
 
 def test_structured_grid(compression_fixture, format_fixture):

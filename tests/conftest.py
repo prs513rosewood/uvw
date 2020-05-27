@@ -34,8 +34,9 @@ def field_data(request):
 
     e_r = np.zeros([s - 1 for s in r.shape] + [3, 3])
     e_r[..., :, :] = np.array([[0, 1, 0], [1, 0, 0], [0, 1, 1]])
+    f = np.arange(dim, dtype=np.float)  # field array
 
-    return coords, r, e_r
+    return coords, r, e_r, f
 
 
 @pytest.fixture(params=[False, True])
@@ -57,7 +58,8 @@ def get_vtk_data(reader, sstream):
     reader.Update()
     output = reader.GetOutput()
     return v2n(output.GetPointData().GetArray('point')), \
-        v2n(output.GetCellData().GetArray('cell'))
+        v2n(output.GetCellData().GetArray('cell')), \
+        v2n(output.GetFieldData().GetArray('field'))
 
 
 @pytest.fixture(params=['C', 'F'])

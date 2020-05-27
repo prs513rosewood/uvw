@@ -26,7 +26,7 @@ def test_prectilinear_grid(field_data,
                            compression_fixture,
                            format_fixture,
                            ordering_fixture):
-    coords, r, e_r = field_data
+    coords, r, e_r, field = field_data
     dim = r.ndim
     out_name = 'test_prectilinear_grid.pvtr'
 
@@ -40,17 +40,20 @@ def test_prectilinear_grid(field_data,
             r, range(dim), 'point', components_order=ordering_fixture.param
         ),
         vtk_format=format,
-    )
-    rect.addCellData(
+    ).addCellData(
         DataArray(
             e_r, range(dim), 'cell', components_order=ordering_fixture.param
         ),
         vtk_format=format,
-    )
-    rect.write()
+    ).addFieldData(
+        DataArray(
+            field, [0], 'field', components_order=ordering_fixture.param
+        ),
+        vtk_format=format,
+    ).write()
 
     reader = vtkXMLPRectilinearGridReader()
-    vtk_r, vtk_e_r = get_vtk_data(reader, out_name)
+    vtk_r, vtk_e_r, vtk_f = get_vtk_data(reader, out_name)
 
     vtk_r = vtk_r.reshape(r.shape, order='F')
     vtk_e_r = vtk_e_r.reshape(e_r.shape, order='F') \
@@ -58,6 +61,7 @@ def test_prectilinear_grid(field_data,
 
     assert all(vtk_r == r)
     assert all(vtk_e_r == e_r)
+    assert all(vtk_f == field)
 
     clean(rect)
 

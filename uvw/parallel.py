@@ -1,31 +1,41 @@
-from . import writer
-from . import vtk_files
-
-from .data_array import DataArray
-
+"""
+Module with MPI-empowered classes for parallel VTK file types.
+"""
 import functools
 
 from os.path import splitext
 from mpi4py import MPI
 
+from . import writer
+from . import vtk_files
+
+from .data_array import DataArray
+
+
 MASTER_RANK = 0
 
 
 def MPIWrapper(cls):
-
+    "Wrap VTKFile functions with MPI variants"
     orig_addPointData = cls.addPointData
     orig_addCellData = cls.addCellData
+    orig_addFieldData = cls.addFieldData
     orig_write = cls.write
 
     def addPointData(self, array, *args, **kwargs):
-        orig_addPointData(self, array, *args, **kwargs)
         if self.rank == MASTER_RANK:
             self.ppoint_data.registerPDataArray(array, *args, **kwargs)
+        return orig_addPointData(self, array, *args, **kwargs)
 
     def addCellData(self, array, *args, **kwargs):
-        orig_addCellData(self, array, *args, **kwargs)
         if self.rank == MASTER_RANK:
             self.pcell_data.registerPDataArray(array, *args, **kwargs)
+        return orig_addCellData(self, array, *args, **kwargs)
+
+    def addFieldData(self, array, *args, **kwargs):
+        if self.rank == MASTER_RANK:
+            self.pfield_data.registerPDataArray(array, *args, **kwargs)
+        return orig_addFieldData(self, array, *args, **kwargs)
 
     def write(self):
         orig_write(self)
@@ -34,6 +44,7 @@ def MPIWrapper(cls):
 
     cls.addPointData = addPointData
     cls.addCellData = addCellData
+    cls.addFieldData = addFieldData
     cls.write = write
     return cls
 
@@ -79,6 +90,8 @@ class PRectilinearGrid(vtk_files.RectilinearGrid):
                                                           data_node)
         self.pcell_data = self.pwriter.registerComponent('PCellData',
                                                          data_node)
+        self.pfield_data = self.pwriter.registerComponent('PFieldData',
+                                                          data_node)
         # Register coordinates
         pcoordinates = self.pwriter.registerComponent('PCoordinates',
                                                       data_node)

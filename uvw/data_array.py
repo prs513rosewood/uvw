@@ -1,3 +1,7 @@
+"""
+Module defining class (`DataArray`) used to represent Numpy arrays in XML
+model.
+"""
 import functools
 
 
@@ -43,7 +47,8 @@ class DataArray:
         self.attributes = {
             "Name": name,
             "type": str(self.flat_data.dtype).capitalize(),
-            "NumberOfComponents": str(nb_components)
+            "NumberOfComponents": str(nb_components),
+            "NumberOfTuples": str(self.flat_data.size),
         }
 
     def __str__(self):  # pragma: no cover

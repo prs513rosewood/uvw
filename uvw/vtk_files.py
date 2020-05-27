@@ -1,3 +1,6 @@
+"""
+Module with classes corresponding to VTK file types.
+"""
 from . import writer
 from . import data_array
 
@@ -26,6 +29,9 @@ class VTKFile:
         # Registering data elements
         self.point_data = self.piece.register('PointData')
         self.cell_data = self.piece.register('CellData')
+        self.field_data = self.writer.registerComponent(
+            'FieldData', self.writer.data_node
+        )
 
     def addPointData(self, data_array, vtk_format='binary'):
         """
@@ -40,14 +46,28 @@ class VTKFile:
             compression) in the ``AppendData`` section
         """
         self.point_data.registerDataArray(data_array, vtk_format)
+        return self
 
     def addCellData(self, data_array, vtk_format='binary'):
         """
         Add a DataArray instance to the PointData section of the file
 
-        Arguments are identical to `addPointData`
+        Arguments are identical to `addPointData`.
         """
         self.cell_data.registerDataArray(data_array, vtk_format)
+        return self
+
+    def addFieldData(self, data_array, vtk_format='binary'):
+        """
+        Add a DataArray instance to the FieldData section of the file.
+
+        Arguments are identical to `addPointData`.
+
+        The FieldData section contains arrays that are not related to
+        the domain geometry. Their shape is therefore freeform.
+        """
+        self.field_data.registerDataArray(data_array, vtk_format)
+        return self
 
     def write(self):
         """

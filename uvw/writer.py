@@ -1,10 +1,12 @@
+"""
+Module with classes for interacting with the XML model underlying VTK files.
+"""
 import xml.dom.minidom as dom
 import io
 import zlib
 
 import numpy as np
 
-from functools import reduce
 from base64 import b64encode
 
 
