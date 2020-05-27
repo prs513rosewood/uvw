@@ -44,12 +44,19 @@ class DataArray:
         # Hopefully this is a view
         self.flat_data = self.data.transpose(*axes).reshape(-1, order='F')
 
+        data_type = str(self.flat_data.dtype).capitalize()
+
         self.attributes = {
             "Name": name,
-            "type": str(self.flat_data.dtype).capitalize(),
+            "type": data_type,
             "NumberOfComponents": str(nb_components),
             "NumberOfTuples": str(self.flat_data.size),
         }
+
+        if 'Int' in data_type:
+            self.format_str = '%d'
+        else:
+            self.format_str = '%.18e'
 
     def __str__(self):  # pragma: no cover
         return self.attributes.__str__()

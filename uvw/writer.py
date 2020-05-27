@@ -88,7 +88,12 @@ class Component:
     def _addArrayNodeData(self, data_array, component, vtk_format):
         if vtk_format == 'ascii':
             sstream = io.StringIO()
-            np.savetxt(sstream, data_array.flat_data, newline=' ')
+            np.savetxt(
+                sstream,
+                data_array.flat_data,
+                newline=' ',
+                fmt=data_array.format_str,
+            )
             data_as_str = sstream.getvalue()
             # reduce(lambda x, y: x + str(y) + ' ', data_array.flat_data, "")
         elif vtk_format == 'binary':

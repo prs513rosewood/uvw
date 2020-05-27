@@ -34,7 +34,7 @@ def field_data(request):
 
     e_r = np.zeros([s - 1 for s in r.shape] + [3, 3])
     e_r[..., :, :] = np.array([[0, 1, 0], [1, 0, 0], [0, 1, 1]])
-    f = np.arange(dim, dtype=np.float)  # field array
+    f = np.arange(dim, dtype=np.int32)  # field array
 
     return coords, r, e_r, f
 
