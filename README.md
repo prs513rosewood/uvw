@@ -1,7 +1,9 @@
 UVW - Universal VTK Writer
 ==========================
 [![Build Status](https://travis-ci.com/prs513rosewood/uvw.svg?branch=master)](https://travis-ci.com/prs513rosewood/uvw)
-[![Coverage Status](https://coveralls.io/repos/github/prs513rosewood/uvw/badge.svg?branch=master)](https://coveralls.io/github/prs513rosewood/uvw?branch=master)
+[![Coverage
+Status](https://coveralls.io/repos/github/prs513rosewood/uvw/badge.svg?branch=master)](https://coveralls.io/github/prs513rosewood/uvw?branch=master)
+[![PyPI Version](https://img.shields.io/pypi/v/uvw.svg)](https://pypi.org/project/uvw/)
 
 UVW is a small utility library to write VTK files from data contained in Numpy
 arrays. It handles fully-fledged `ndarrays` defined over {1, 2, 3}-d domains,
