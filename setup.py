@@ -1,3 +1,4 @@
+"Install script"
 import setuptools
 
 with open("README.md", "r") as fh:
@@ -24,5 +25,5 @@ setuptools.setup(
         "Operating System :: OS Independent",
         "Topic :: Scientific/Engineering :: Visualization",
         "Intended Audience :: Science/Research",
-    )
+    ),
 )

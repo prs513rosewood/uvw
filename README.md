@@ -216,6 +216,9 @@ Then you can use pip in development mode (possibly in
 ```
 pip install --user -e .[mpi,tests]
 ```
+Installing with the `tests` extra pulls `vtk` as a dependency. This is because
+reading files with VTK in tests is the most reliable way to check file
+integrity.
 
 ## Running the tests
 
