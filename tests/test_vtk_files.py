@@ -154,7 +154,7 @@ def test_unstructured_grid(compression_fixture, format_fixture):
 
     connectivity = {
         CellType.TRIANGLE: np.array([range(3)], dtype=np.int32),
-        CellType.TRIANGLE_STRIP: np.array([[0, 1, 2]], dtype=np.int32),
+        6: np.array([[0, 1, 2]], dtype=np.int32),  # Testing true VTK type id
     }
 
     grid = UnstructuredGrid(f, nodes, connectivity, compression=compress)

@@ -265,7 +265,7 @@ class UnstructuredGrid(VTKFile):
         offset = 0
         for k, conn in connectivity.items():
             if isinstance(k, CellType):
-                k = k.value[0]
+                k = k.value
             types[offset:offset+len(conn)] = k
             offset += len(conn)
 
