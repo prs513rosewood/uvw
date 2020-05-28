@@ -6,6 +6,7 @@ from vtk import (
     vtkXMLRectilinearGridReader,
     vtkXMLImageDataReader,
     vtkXMLStructuredGridReader,
+    vtkXMLUnstructuredGridReader,
 )
 from vtk.util.numpy_support import vtk_to_numpy
 from conftest import get_vtk_data
@@ -14,8 +15,11 @@ from uvw import (
     ImageData,
     RectilinearGrid,
     StructuredGrid,
+    UnstructuredGrid,
     DataArray,
 )
+
+from uvw.unstructured import CellType
 
 
 def test_rectilinear_grid(field_data,
@@ -132,3 +136,41 @@ def test_structured_grid(compression_fixture, format_fixture):
     vtk_data = vtk_data.reshape(data.shape, order='C')
 
     assert all(vtk_data == data)
+
+
+def test_unstructured_grid(compression_fixture, format_fixture):
+    f = io.StringIO()
+    compress = compression_fixture.param
+    format = format_fixture.param
+
+    nodes = np.array([
+        [0, 0, 0],
+        [1, 0, 0],
+        [0, 1, 0],
+    ])
+
+    point_data = np.array([[0, 1], [1, 2], [2, 3]])
+    cell_data = np.array([1, 2])
+
+    connectivity = {
+        CellType.TRIANGLE: np.array([range(3)], dtype=np.int32),
+        CellType.TRIANGLE_STRIP: np.array([[0, 1, 2]], dtype=np.int32),
+    }
+
+    grid = UnstructuredGrid(f, nodes, connectivity, compression=compress)
+    grid.addPointData(DataArray(point_data, [0], 'point'), vtk_format=format)
+    grid.addCellData(DataArray(cell_data, [0], 'cell'), vtk_format=format)
+    grid.write()
+
+    reader = vtkXMLUnstructuredGridReader()
+    reader.SetReadFromInputString(True)
+    reader.SetInputString(f.getvalue())
+    reader.Update()
+
+    vtk_pdata = vtk_to_numpy(
+        reader.GetOutput().GetPointData().GetArray('point'))
+    vtk_cdata = vtk_to_numpy(reader.GetOutput().GetCellData().GetArray('cell'))
+    vtk_pdata.reshape(point_data.shape, order='C')
+    vtk_cdata.reshape(cell_data.shape, order='C')
+    assert all(vtk_pdata == point_data)
+    assert all(vtk_cdata == cell_data)

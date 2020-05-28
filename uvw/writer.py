@@ -77,7 +77,7 @@ class Component:
         if attributes is None:
             attributes = {}
 
-        if type(attributes) != dict:
+        if not isinstance(attributes, dict):
             raise ValueError(
                 'Cannot register attributes of type ' + str(type(attributes)))
 
@@ -201,7 +201,7 @@ class Writer:
 
     def write(self, fd):
         """Write to file descriptor"""
-        if type(fd) is str:
+        if isinstance(fd, str):
             with open(fd, 'w') as file:
                 self.write(file)
         elif issubclass(type(fd), io.TextIOBase):

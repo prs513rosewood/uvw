@@ -5,7 +5,10 @@ from uvw import (
     DataArray,
     RectilinearGrid,
     StructuredGrid,
+    UnstructuredGrid,
 )
+
+from uvw.unstructured import check_connectivity, CellType
 
 
 def test_malformed_attributes():
@@ -66,3 +69,31 @@ def test_context_manger():
     x = np.array([1, 2])
     with RectilinearGrid('', x):
         raise Exception('Yo')
+
+
+def test_check_connectivity():
+    connectivity = {CellType.TRIANGLE: [[0, 1, 2]]}
+    with pytest.raises(TypeError):
+        check_connectivity(connectivity)
+
+    connectivity = {'triangle': [[0, 1, 2]]}
+    with pytest.raises(TypeError):
+        check_connectivity(connectivity)
+
+    connectivity = {CellType.TRIANGLE: np.array([[0, 1, 2]])}
+    with pytest.raises(TypeError):
+        check_connectivity(connectivity)
+
+    connectivity = {CellType.TRIANGLE: np.array([[0, 1, 2, 3]], dtype=np.int32)}
+    assert not check_connectivity(connectivity)
+
+
+def test_check_unstructured():
+    nodes = np.zeros([1])
+    with pytest.raises(ValueError):
+        UnstructuredGrid('', nodes, {})
+
+    nodes = np.zeros([1, 2])
+    connectivity = {CellType.TRIANGLE: np.array([[0, 1, 2, 3]], dtype=np.int32)}
+    with pytest.raises(ValueError):
+        UnstructuredGrid('', nodes, connectivity)

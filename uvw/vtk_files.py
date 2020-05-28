@@ -1,11 +1,12 @@
 """
 Module with classes corresponding to VTK file types.
 """
-from . import writer
-from . import data_array
-
 import functools
 import numpy as np
+
+from . import writer
+from .data_array import DataArray
+from .unstructured import CellType, check_connectivity
 
 
 class VTKFile:
@@ -125,7 +126,7 @@ class RectilinearGrid(VTKFile):
         VTKFile.__init__(self, filename, 'RectilinearGrid', **kwargs)
 
         # Checking that we actually have a list or tuple
-        if type(coordinates).__name__ == 'ndarray':
+        if isinstance(coordinates, np.ndarray):
             coordinates = [coordinates]
 
         self.coordinates = list(coordinates)
@@ -176,7 +177,7 @@ class RectilinearGrid(VTKFile):
         coordinate_component = self.piece.register('Coordinates')
 
         for coord, prefix in zip(self.coordinates, ('x', 'y', 'z')):
-            array = data_array.DataArray(coord, [0], prefix + '_coordinates')
+            array = DataArray(coord, [0], prefix + '_coordinates')
             coordinate_component.registerDataArray(array, vtk_format='append')
 
 
@@ -210,4 +211,76 @@ class StructuredGrid(VTKFile):
 
         points_component = self.piece.register('Points')
         points_component.registerDataArray(
-            data_array.DataArray(points_3d, [0], 'points'))
+            DataArray(points_3d, [0], 'points'), vtk_format='append',
+        )
+
+
+class UnstructuredGrid(VTKFile):
+    "VTKUnstructuredGrid Data (data on nodes + connectivity)"
+
+    def __init__(self, filename, nodes, connectivity, **kwargs):
+        VTKFile.__init__(self, filename, 'UnstructuredGrid', **kwargs)
+
+        if nodes.ndim != 2:
+            raise ValueError('Nodes should be a 2D array')
+
+        if not check_connectivity(connectivity):
+            raise ValueError('Connectivity is invalid')
+
+        cells_component = self.piece.register('Cells')
+
+        ncells = sum(map(len, connectivity.values()))
+
+        self.piece.setAttributes({
+            'NumberOfPoints': str(nodes.shape[0]),
+            'NumberOfCells': str(ncells),
+        })
+
+        self.piece.register('Points').registerDataArray(
+            DataArray(nodes, [0], 'points'), vtk_format='ascii',
+        )
+
+        flat_connectivity = np.empty(
+            sum(map(lambda x: x.size, connectivity.values())),
+            dtype=np.int32,
+        )
+
+        # Flattening the connectivities for each element type
+        offset = 0
+        for conn in connectivity.values():
+            flat_connectivity[offset:offset+conn.size] = conn.flatten()
+            offset += conn.size
+
+        offsets = np.empty(ncells, dtype=np.int32)
+
+        offset, index = 0, 0
+        for conn in connectivity.values():
+            for cell in conn:
+                offset += len(cell)
+                offsets[index] = offset
+                index += 1
+
+        types = np.empty(ncells, dtype=np.int32)
+
+        offset = 0
+        for k, conn in connectivity.items():
+            if isinstance(k, CellType):
+                k = k.value[0]
+            types[offset:offset+len(conn)] = k
+            offset += len(conn)
+
+        # Register mesh description
+        cells_component.registerDataArray(
+            DataArray(flat_connectivity, [0], 'connectivity'),
+            vtk_format='append',
+        )
+
+        cells_component.registerDataArray(
+            DataArray(offsets, [0], 'offsets'),
+            vtk_format='append',
+        )
+
+        cells_component.registerDataArray(
+            DataArray(types, [0], 'types'),
+            vtk_format='append',
+        )
