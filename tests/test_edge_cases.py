@@ -97,3 +97,9 @@ def test_check_unstructured():
     connectivity = {CellType.TRIANGLE: np.array([[0, 1, 2, 3]], dtype=np.int32)}
     with pytest.raises(ValueError):
         UnstructuredGrid('', nodes, connectivity)
+
+
+def test_check_array_type_error():
+    array = np.array([0, 1, 2], dtype=np.complex128)
+    with pytest.raises(TypeError):
+        DataArray(array, [0], '')

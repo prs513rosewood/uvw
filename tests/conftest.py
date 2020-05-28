@@ -3,9 +3,14 @@ import numpy as np
 
 from vtk.util.numpy_support import vtk_to_numpy as v2n
 
+from uvw.data_array import DTYPE_TO_VTK
+
+@pytest.fixture(params=DTYPE_TO_VTK.keys())
+def dtype_fixture(request):
+    return request
 
 @pytest.fixture(params=[1, 2, 3])
-def field_data(request):
+def field_data(request, dtype_fixture):
     N = 4
 
     dim = request.param
@@ -34,7 +39,7 @@ def field_data(request):
 
     e_r = np.zeros([s - 1 for s in r.shape] + [3, 3])
     e_r[..., :, :] = np.array([[0, 1, 0], [1, 0, 0], [0, 1, 1]])
-    f = np.arange(dim, dtype=np.int32)  # field array
+    f = np.arange(dim, dtype=dtype_fixture.param)  # field array
 
     return coords, r, e_r, f
 

@@ -3,6 +3,20 @@ Module defining class (`DataArray`) used to represent Numpy arrays in XML
 model.
 """
 import functools
+import numpy as np
+
+DTYPE_TO_VTK = {
+    np.dtype(np.float32): 'Float32',
+    np.dtype(np.float64): 'Float64',
+    np.dtype(np.int8): 'Int8',
+    np.dtype(np.int16): 'Int16',
+    np.dtype(np.int32): 'Int32',
+    np.dtype(np.int64): 'Int64',
+    np.dtype(np.uint8): 'UInt8',
+    np.dtype(np.uint16): 'UInt16',
+    np.dtype(np.uint32): 'UInt32',
+    np.dtype(np.uint64): 'UInt64',
+}
 
 
 class DataArray:
@@ -44,7 +58,12 @@ class DataArray:
         # Hopefully this is a view
         self.flat_data = self.data.transpose(*axes).reshape(-1, order='F')
 
-        data_type = str(self.flat_data.dtype).capitalize()
+        try:
+            data_type = DTYPE_TO_VTK[self.flat_data.dtype]
+        except KeyError:
+            raise TypeError(
+                'Array dtype {} is not supported by VTK'.format(
+                    self.flat_data.dtype))
 
         self.attributes = {
             "Name": name,
