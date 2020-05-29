@@ -6,6 +6,8 @@ from enum import Enum, unique
 
 import numpy as np
 
+from .data_array import DTYPE_TO_VTK
+
 
 @unique
 class CellType(Enum):
@@ -91,7 +93,12 @@ def check_connectivity(connectivity):
             cell_type = CellType(cell_type)
         if not isinstance(conn, np.ndarray):
             raise TypeError("Connectivity needs to be of type numpy.ndarray")
-        if conn.dtype not in [np.int32]:
+
+        int_types = [
+            dtype for dtype, label in DTYPE_TO_VTK.items() if 'Int' in label
+        ]
+
+        if conn.dtype not in int_types:
             raise TypeError("Connectivity dtype needs to be an integer type")
         nnodes = NODES_PER_CELL[cell_type]
 
