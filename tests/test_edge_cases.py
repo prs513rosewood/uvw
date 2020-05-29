@@ -76,7 +76,7 @@ def test_check_connectivity():
     with pytest.raises(TypeError):
         check_connectivity(connectivity)
 
-    connectivity = {'triangle': [[0, 1, 2]]}
+    connectivity = {'triangle': np.array([[0, 1, 2]])}
     with pytest.raises(ValueError):
         check_connectivity(connectivity)
 
@@ -84,7 +84,7 @@ def test_check_connectivity():
     with pytest.raises(TypeError):
         check_connectivity(connectivity)
 
-    connectivity = {CellType.TRIANGLE: np.array([[0, 1, 2, 3]])}
+    connectivity = {5: np.array([[0, 1, 2, 3]])}
     assert not check_connectivity(connectivity)
 
 

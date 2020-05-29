@@ -9,6 +9,17 @@ from .data_array import DataArray
 from .unstructured import CellType, check_connectivity
 
 
+def _make_3darray(points):
+    "Complete missing coordinates to get 3d points"
+    if points.shape[1] == 3:
+        return points
+
+    points_3d = np.zeros((points.shape[0], 3))
+    for i in range(min(points.shape[1], 3)):
+        points_3d[:, i] = points[:, i]
+    return points_3d
+
+
 class VTKFile:
     """Generic VTK file"""
 
@@ -191,9 +202,7 @@ class StructuredGrid(VTKFile):
             raise ValueError('Points should be a 2D array')
 
         # Completing the missing coordinates
-        points_3d = np.zeros((points.shape[0], 3))
-        for i in range(points.shape[1]):
-            points_3d[:, i] = points[:, i]
+        points = _make_3darray(points)
 
         extent = [n - 1 for n in shape]
         for i in range(len(extent), 3):
@@ -211,7 +220,7 @@ class StructuredGrid(VTKFile):
 
         points_component = self.piece.register('Points')
         points_component.registerDataArray(
-            DataArray(points_3d, [0], 'points'), vtk_format='append',
+            DataArray(points, [0], 'points'), vtk_format='append',
         )
 
 
@@ -223,6 +232,9 @@ class UnstructuredGrid(VTKFile):
 
         if nodes.ndim != 2:
             raise ValueError('Nodes should be a 2D array')
+
+        # Completing the missing coordinates
+        nodes = _make_3darray(nodes)
 
         if not check_connectivity(connectivity):
             raise ValueError('Connectivity is invalid')
