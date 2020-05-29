@@ -168,6 +168,46 @@ global grid size ends up being `(2*N-1, 2*N-1)`. If you forget that overlap,
 Paraview (or another VTK-based software) may complain that some parts in the
 global grid (aka "extents" in VTK) are missing data.
 
+## Writing unstructured data
+
+UVW supports VTK's UnstructuredGrid, where the geometry is given with a list of
+nodes and a connectivity. The `UnstructuredGrid` class expects connectivity to
+be a dictionnary enumerating the different connectivity types and the cells
+associated to each type. For example:
+
+```python
+import numpy as np
+
+from uvw import UnstructuredGrid
+from uvw.unstructured import CellType
+
+nodes = np.array([
+    [0, 0, 0],
+    [1, 0, 0],
+    [1, 1, 0],
+    [0, 1, 0],
+    [2, 0, 0],
+    [0, 2, 0],
+    [1, 2, 0],
+])
+
+connectivity = {
+    CellType.QUAD: np.array([
+        [0, 1, 2, 3], [2, 6, 5, 3],
+    ]),
+    5: np.array([[4, 2, 1]]),
+}
+
+f = UnstructuredGrid('ugrid.vtu', nodes, connectivity)
+f.write()
+```
+
+As you can see, cell types can be specified with the `unstructured.CellType`
+enumeration or with the underlying integer value (see
+[VTKFileFormats](https://lorensen.github.io/VTKExamples/site/VTKFileFormats/)
+for more info). `UnstructuredGrid` performs a sanity check of the connectivity
+to see if the number of nodes matches the cell type.
+
 ## List of features
 
 Here is a list of what is available in UVW:
@@ -177,6 +217,7 @@ Here is a list of what is available in UVW:
 - Image data (`.vti`)
 - Rectilinear grid (`.vtr`)
 - Structured grid (`.vts`)
+- Unstructured grid (`.vtu`)
 - Parallel Rectilinear grid (`.pvtr`)
 
 ### Data representation
@@ -190,11 +231,11 @@ Here is a list of what is available in UVW:
 Here is a list of future developments:
 
 - [x] Image data
-- [ ] Unstructured grid
+- [x] Unstructured grid
 - [x] Structured grid
 - [x] Parallel writing (`mpi4py`-enabled `PRectilinearGrid` *is now available!*)
 - [ ] Benchmarking + performance comparison with
-      [pyevtk](https://bitbucket.org/pauloh/pyevtk)
+      [pyevtk](https://github.com/pyscience-projects/pyevtk)
 
 
 ## Developing
