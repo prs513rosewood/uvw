@@ -202,10 +202,12 @@ class Writer:
     def write(self, fd):
         """Write to file descriptor"""
         if isinstance(fd, str):
-            with open(fd, 'w') as file:
+            with open(fd, 'wb') as file:
                 self.write(file)
         elif issubclass(type(fd), io.TextIOBase):
             self.document.writexml(fd, indent="\n  ", addindent="  ")
+        elif issubclass(type(fd), io.BufferedIOBase):
+            fd.write(self.document.toxml(encoding='UTF-8'))
         else:
             raise ValueError("Expected a path or "
                              + "file descriptor, got {}".format(type(fd)))
