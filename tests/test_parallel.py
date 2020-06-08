@@ -1,24 +1,15 @@
 import numpy as np
 import pytest
 import vtk
-import os
 
 from mpi4py import MPI
 from vtk.util.numpy_support import vtk_to_numpy
 from vtk import vtkXMLPRectilinearGridReader
-from conftest import get_vtk_data
+from conftest import get_vtk_data, clean
 from numpy import all
 
 from uvw.parallel import PRectilinearGrid
 from uvw import DataArray
-
-
-def clean(f):
-    try:
-        os.remove(f.pfilename)
-        os.remove(f.filename)
-    except FileNotFoundError:
-        pass
 
 
 @pytest.mark.mpi_skip
@@ -124,4 +115,4 @@ def test_prectilinear_grid_mpi(compression_fixture, format_fixture):
 
 
 if __name__ == '__main__':
-    test_prectilinear_grid()
+    test_prectilinear_grid_mpi()
