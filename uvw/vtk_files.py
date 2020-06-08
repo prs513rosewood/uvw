@@ -20,6 +20,23 @@ def _make_3darray(points):
     return points_3d
 
 
+def write_manager(cls):
+    "Make a class into a context manager that writes on exit"
+    def __enter__(self):
+        return self
+
+    def __exit__(self, type, value, traceback):
+        if type is None:
+            # Only write if no error
+            self.write()
+        return True
+
+    cls.__enter__ = __enter__
+    cls.__exit__ = __exit__
+    return cls
+
+
+@write_manager
 class VTKFile:
     """Generic VTK file"""
 
@@ -87,15 +104,6 @@ class VTKFile:
         """
         self.writer.registerAppend()
         self.writer.write(self.filename)
-
-    def __enter__(self):
-        return self
-
-    def __exit__(self, type, value, traceback):
-        if type is None:
-            # Only write if no error
-            self.write()
-        return True
 
 
 class ImageData(VTKFile):
@@ -296,3 +304,27 @@ class UnstructuredGrid(VTKFile):
             DataArray(types, [0], 'types'),
             vtk_format='append',
         )
+
+
+@write_manager
+class ParaViewData:
+    """
+    Groups VTK files into a single description.
+
+    See: https://www.paraview.org/Wiki/ParaView/Data_formats#PVD_File_Format
+    """
+    def __init__(self, filename, **kwargs):
+        self.filename = filename
+        self.writer = writer.Writer('Collection', **kwargs)
+
+    def addFile(self, file, timestep=0, group="", part=0):
+        "Add a file to the group"
+        if issubclass(type(file), VTKFile):
+            file = file.filename
+
+        self.writer.registerComponent('DataSet', self.writer.data_node, dict(
+            timestep=str(timestep), group=group, part=str(part), file=file
+        ))
+
+    def write(self):
+        self.writer.write(self.filename)

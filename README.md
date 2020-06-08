@@ -219,6 +219,7 @@ Here is a list of what is available in UVW:
 - Structured grid (`.vts`)
 - Unstructured grid (`.vtu`)
 - Parallel Rectilinear grid (`.pvtr`)
+- ParaView Data (`.pvd`)
 
 ### Data representation
 

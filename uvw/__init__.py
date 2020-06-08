@@ -2,7 +2,8 @@ from .vtk_files import (
     RectilinearGrid,
     ImageData,
     StructuredGrid,
-    UnstructuredGrid
+    UnstructuredGrid,
+    ParaViewData
 )
 
 from .data_array import DataArray

@@ -9,13 +9,14 @@ from vtk import (
     vtkXMLUnstructuredGridReader,
 )
 from vtk.util.numpy_support import vtk_to_numpy
-from conftest import get_vtk_data
+from conftest import get_vtk_data, clean
 
 from uvw import (
     ImageData,
     RectilinearGrid,
     StructuredGrid,
     UnstructuredGrid,
+    ParaViewData,
     DataArray,
 )
 
@@ -174,3 +175,21 @@ def test_unstructured_grid(compression_fixture, format_fixture):
     vtk_cdata.reshape(cell_data.shape, order='C')
     assert all(vtk_pdata == point_data)
     assert all(vtk_cdata == cell_data)
+
+
+def test_paraview_data():
+    """
+    NB: This is just testing writing. Since PVD is a ParaView related extension,
+    it cannot be tested with vanilla VTK
+    """
+    x = np.linspace(0, 1, 10)
+    y = x.copy()
+
+    grid = RectilinearGrid('grid.vtr', [x, y])
+    grid.write()
+
+    group = ParaViewData('grid.pvd')
+    group.addFile(grid)
+    group.write()
+
+    clean(grid, group)
