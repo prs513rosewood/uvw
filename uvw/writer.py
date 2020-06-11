@@ -20,7 +20,7 @@ def encodeArray(array, level):
     """Encode array data and header in base64."""
     def compress(array):
         """Compress array with zlib. Returns header and compressed data."""
-        raw_data = memoryview(array)  # avoid a copy
+        raw_data = memoryview(array.tobytes())
         data_size = raw_data.nbytes
 
         max_block_size = 2**15
