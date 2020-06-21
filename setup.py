@@ -6,7 +6,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="uvw",
-    version="0.3.0",
+    version="0.3.1",
     author="Lucas Frérot",
     author_email="lucas.frerot@protonmail.com",
     description="Universal VTK Writer for Numpy Arrays",
