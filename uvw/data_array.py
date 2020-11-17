@@ -16,6 +16,16 @@ DTYPE_TO_VTK = {
     np.dtype(np.uint16): 'UInt16',
     np.dtype(np.uint32): 'UInt32',
     np.dtype(np.uint64): 'UInt64',
+
+    # Big-Endian variants (>i1 == <i1 and >u1 == <u1)
+    np.dtype('>f4'): 'Float32',
+    np.dtype('>f8'): 'Float64',
+    np.dtype('>i2'): 'Int16',
+    np.dtype('>i4'): 'Int32',
+    np.dtype('>i8'): 'Int64',
+    np.dtype('>u2'): 'UInt16',
+    np.dtype('>u4'): 'UInt32',
+    np.dtype('>u8'): 'UInt64',
 }
 
 
