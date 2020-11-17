@@ -1,5 +1,8 @@
 """
 Module with classes for interacting with the XML model underlying VTK files.
+
+See https://lorensen.github.io/VTKExamples/site/VTKFileFormats/ for format
+description.
 """
 import xml.dom.minidom as dom
 import io
@@ -140,6 +143,12 @@ class Writer:
         :param vtk_version: version number of VTK file
         :param byte_order: byte order of binary data
         """
+
+        valid_orders = {"LittleEndian", "BigEndian"}
+        if byte_order not in valid_orders:
+            raise ValueError("Byte order '{}' invalid, should be in {}"
+                             .format(byte_order, valid_orders))
+
         self.document = dom.getDOMImplementation()  \
                            .createDocument(None, 'VTKFile', None)
         self.root = self.document.documentElement
