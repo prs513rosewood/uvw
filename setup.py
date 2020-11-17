@@ -19,11 +19,11 @@ setuptools.setup(
       "mpi": ['mpi4py'],
       "tests": ['pytest', 'pytest-mpi', 'pytest-cov', 'mpi4py', 'vtk'],
     },
-    classifiers=(
+    classifiers=[
         "Programming Language :: Python :: 3",
         "License :: OSI Approved :: MIT License",
         "Operating System :: OS Independent",
         "Topic :: Scientific/Engineering :: Visualization",
         "Intended Audience :: Science/Research",
-    ),
+    ],
 )
