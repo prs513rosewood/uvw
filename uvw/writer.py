@@ -45,15 +45,17 @@ def encodeArray(array, level):
         )
 
         # Header data (cf https://vtk.org/Wiki/VTK_XML_Formats#Compressed_Data)
+        header_dtype = np.dtype('{}u4'.format(array.dtype.byteorder))
         usize = max_block_size
         psize = last_block_size
         csize = [len(x) for x in compressed_data]
-        header = np.array([nblocks, usize, psize] + csize, dtype=np.uint32)
+        header = np.array([nblocks, usize, psize] + csize, dtype=header_dtype)
         return header.tobytes(), b"".join(compressed_data)
 
     def raw(array):
         """Returns header and array data in bytes."""
-        header = np.array([array.nbytes], dtype=np.uint32)
+        header_dtype = np.dtype('{}u4'.format(array.dtype.byteorder))
+        header = np.array([array.nbytes], dtype=header_dtype)
         return header.tobytes(), memoryview(array)
 
     if level is not None:
