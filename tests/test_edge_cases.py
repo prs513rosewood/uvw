@@ -103,3 +103,9 @@ def test_check_array_type_error():
     array = np.array([0, 1, 2], dtype=np.complex128)
     with pytest.raises(TypeError):
         DataArray(array, [0], '')
+
+
+def test_invalid_endian():
+    with pytest.raises(ValueError):
+        x = np.array([0, 1])
+        RectilinearGrid('', x, byte_order='WhatEndian')
