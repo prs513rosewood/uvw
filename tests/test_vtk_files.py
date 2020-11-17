@@ -27,13 +27,13 @@ def test_rectilinear_grid(field_data,
                           compression_fixture,
                           format_fixture,
                           ordering_fixture):
-    coords, r, e_r, field = field_data
+    coords, r, e_r, field, order = field_data
     dim = r.ndim
     f = io.StringIO()
 
     compress = compression_fixture.param
     format = format_fixture.param
-    rect = RectilinearGrid(f, coords, compression=compress)
+    rect = RectilinearGrid(f, coords, compression=compress, byte_order=order)
     rect.addPointData(
         DataArray(r, range(dim), 'point', ordering_fixture.param),
         vtk_format=format
@@ -68,7 +68,7 @@ def test_image_data(field_data,
                     compression_fixture,
                     format_fixture,
                     ordering_fixture):
-    coords, r, e_r, field = field_data
+    coords, r, e_r, field, order = field_data
     dim = r.ndim
     f = io.StringIO()
 
@@ -78,7 +78,8 @@ def test_image_data(field_data,
             f,
             [(min(x), max(x)) for x in coords],
             [x.size for x in coords],
-            compression=compress) as fh:
+            compression=compress,
+            byte_order=order) as fh:
         fh.addPointData(
             DataArray(r, range(dim), 'point', ordering_fixture.param),
             vtk_format=format

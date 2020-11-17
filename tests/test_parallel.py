@@ -17,14 +17,16 @@ def test_prectilinear_grid(field_data,
                            compression_fixture,
                            format_fixture,
                            ordering_fixture):
-    coords, r, e_r, field = field_data
+    coords, r, e_r, field, order = field_data
     dim = r.ndim
     out_name = 'test_prectilinear_grid.pvtr'
 
     compress = compression_fixture.param
     format = format_fixture.param
     rect = PRectilinearGrid(out_name,
-                            coords, dim * [0], compression=compress)
+                            coords, dim * [0],
+                            compression=compress,
+                            byte_order=order)
     rect.init_master(None)  # useless here: for coverage only
     rect.addPointData(
         DataArray(

@@ -18,43 +18,48 @@ def clean(*args):
             pass
 
 
+#@pytest.fixture(params=[k for k in DTYPE_TO_VTK.keys() if k.byteorder == "<"])
 @pytest.fixture(params=DTYPE_TO_VTK.keys())
 def dtype_fixture(request):
     return request
+
 
 @pytest.fixture(params=[1, 2, 3])
 def field_data(request, dtype_fixture):
     N = 4
 
     dim = request.param
+    order = "LittleEndian" if dtype_fixture.param.byteorder in "<=|" \
+        else "BigEndian"
+    float_dtype = np.dtype('{}f8'.format(dtype_fixture.param.byteorder))
 
     if dim == 1:
-        x = np.linspace(0, 1, N*2)
+        x = np.linspace(0, 1, N*2, dtype=float_dtype)
         coords = [x]
-        r = np.abs(x)
+        r = np.abs(x).astype(float_dtype)
 
     if dim == 2:
-        x = np.linspace(0, 1, N*2)
-        y = np.linspace(0, 1, N+2)
+        x = np.linspace(0, 1, N*2, dtype=float_dtype)
+        y = np.linspace(0, 1, N+2, dtype=float_dtype)
         coords = [x, y]
 
         xx, yy = np.meshgrid(x, y, indexing='ij', sparse=True)
-        r = np.sqrt(xx**2 + yy**2)
+        r = np.sqrt(xx**2 + yy**2).astype(float_dtype)
 
     if dim == 3:
-        x = np.linspace(0, 1, N*2)
-        y = np.linspace(0, 1, N+2)
-        z = np.linspace(0, 1, N)
+        x = np.linspace(0, 1, N*2, dtype=float_dtype)
+        y = np.linspace(0, 1, N+2, dtype=float_dtype)
+        z = np.linspace(0, 1, N, dtype=float_dtype)
         coords = [x, y, z]
 
         xx, yy, zz = np.meshgrid(x, y, z, indexing='ij', sparse=True)
-        r = np.sqrt(xx**2 + yy**2 + zz**2)
+        r = np.sqrt(xx**2 + yy**2 + zz**2).astype(float_dtype)
 
-    e_r = np.zeros([s - 1 for s in r.shape] + [3, 3])
+    e_r = np.zeros([s - 1 for s in r.shape] + [3, 3], dtype=float_dtype)
     e_r[..., :, :] = np.array([[0, 1, 0], [1, 0, 0], [0, 1, 1]])
     f = np.arange(dim, dtype=dtype_fixture.param)  # field array
 
-    return coords, r, e_r, f
+    return coords, r, e_r, f, order
 
 
 @pytest.fixture(params=[False, True])
@@ -75,9 +80,9 @@ def get_vtk_data(reader, sstream):
         reader.SetInputString(sstream.getvalue())
     reader.Update()
     output = reader.GetOutput()
-    return v2n(output.GetPointData().GetArray('point')), \
-        v2n(output.GetCellData().GetArray('cell')), \
-        v2n(output.GetFieldData().GetArray('field'))
+    return (v2n(output.GetPointData().GetArray('point')),
+            v2n(output.GetCellData().GetArray('cell')),
+            v2n(output.GetFieldData().GetArray('field')))
 
 
 @pytest.fixture(params=['C', 'F'])
