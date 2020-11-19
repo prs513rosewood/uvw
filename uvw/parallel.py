@@ -3,7 +3,7 @@ Module with MPI-empowered classes for parallel VTK file types.
 """
 import functools
 
-from pathlib import PurePath
+from os import PathLike
 from os.path import splitext
 from mpi4py import MPI
 
@@ -17,7 +17,7 @@ MASTER_RANK = 0
 
 
 def _check_file_descriptor(fd):
-    if isinstance(fd, str) or issubclass(type(fd), PurePath):
+    if issubclass(type(fd), (str, PathLike)):
         return
     raise TypeError('Expected path, got {}'.format(fd))
 

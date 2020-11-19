@@ -11,7 +11,7 @@ import zlib
 import numpy as np
 
 from base64 import b64encode
-from pathlib import PurePath
+from os import PathLike
 
 
 def setAttributes(node, attributes):
@@ -213,7 +213,7 @@ class Writer:
 
     def write(self, fd):
         """Write to file descriptor"""
-        if isinstance(fd, str) or issubclass(type(fd), PurePath):
+        if issubclass(type(fd), (str, PathLike)):
             with open(fd, 'wb') as file:
                 self.write(file)
         elif issubclass(type(fd), io.TextIOBase):

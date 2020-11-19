@@ -208,6 +208,11 @@ enumeration or with the underlying integer value (see
 for more info). `UnstructuredGrid` performs a sanity check of the connectivity
 to see if the number of nodes matches the cell type.
 
+If you work with large amounts of unstructured data, consider checking out
+[meshio](https://github.com/nschloe/meshio) which provides many different
+read/write capabilities for various unstructured formats, some of which are
+supported by VTK and are better than VTK's simple XML format.
+
 ## List of features
 
 Here is a list of what is available in UVW:
