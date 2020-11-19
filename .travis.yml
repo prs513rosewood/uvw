@@ -2,6 +2,7 @@ language: python
 python:
     - "3.6"
     - "3.7"
+    - "3.8"
 
 addons:
     apt:
@@ -10,9 +11,9 @@ addons:
             - libopenmpi-dev
 
 install:
-    - pip install --upgrade pytest pytest-mpi pytest-cov mpi4py vtk coveralls
-    - pip install -e .
+    - python -m pip install --upgrade pytest pytest-mpi pytest-cov mpi4py vtk coveralls
+    - python -m pip install -e .
 script:
-    - pytest --cov=uvw tests
+    - python -m pytest --cov=uvw tests
 after_success:
     - coveralls

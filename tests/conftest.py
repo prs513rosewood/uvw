@@ -18,7 +18,6 @@ def clean(*args):
             pass
 
 
-#@pytest.fixture(params=[k for k in DTYPE_TO_VTK.keys() if k.byteorder == "<"])
 @pytest.fixture(params=DTYPE_TO_VTK.keys())
 def dtype_fixture(request):
     return request

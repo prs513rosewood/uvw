@@ -227,6 +227,10 @@ Here is a list of what is available in UVW:
 - Base64 (raw and compressed: the `compression` argument of file constructors
   can be `True`, `False`, or an integer in `[-1, 9]` for compression levels)
 
+Note that raw binary data, while more space efficient and supported by VTK,
+is not valid XML, and therefore not supported by UVW, which uses minidom for XML
+writing.
+
 ### Planned developments
 
 Here is a list of future developments:
