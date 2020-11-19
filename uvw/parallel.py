@@ -3,6 +3,7 @@ Module with MPI-empowered classes for parallel VTK file types.
 """
 import functools
 
+from pathlib import PurePath
 from os.path import splitext
 from mpi4py import MPI
 
@@ -13,6 +14,12 @@ from .data_array import DataArray
 
 
 MASTER_RANK = 0
+
+
+def _check_file_descriptor(fd):
+    if isinstance(fd, str) or issubclass(type(fd), PurePath):
+        return
+    raise TypeError('Expected path, got {}'.format(fd))
 
 
 def MPIWrapper(cls):
@@ -56,6 +63,8 @@ class PRectilinearGrid(vtk_files.RectilinearGrid):
     parent = vtk_files.RectilinearGrid
 
     def __init__(self, filename, coordinates, offset, **kwargs):
+        _check_file_descriptor(filename)
+        filename = str(filename)  # Ensure we have a string
         self.pfilename = filename
         self.comm = MPI.COMM_WORLD
         self.rank = self.comm.Get_rank()

@@ -9,6 +9,7 @@ from uvw import (
 )
 
 from uvw.unstructured import check_connectivity, CellType
+from uvw.parallel import PRectilinearGrid
 
 
 def test_malformed_attributes():
@@ -37,8 +38,10 @@ def test_invalid_compression():
 def test_invalid_file():
     x = np.array([0, 1])
     grid = RectilinearGrid('', x)
-    with pytest.raises(ValueError):
+    with pytest.raises(TypeError):
         grid.writer.write(1)
+    with pytest.raises(TypeError):
+        PRectilinearGrid(1, x, None)
 
 
 def test_array_dimensions():

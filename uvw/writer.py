@@ -11,6 +11,7 @@ import zlib
 import numpy as np
 
 from base64 import b64encode
+from pathlib import PurePath
 
 
 def setAttributes(node, attributes):
@@ -212,7 +213,7 @@ class Writer:
 
     def write(self, fd):
         """Write to file descriptor"""
-        if isinstance(fd, str):
+        if isinstance(fd, str) or issubclass(type(fd), PurePath):
             with open(fd, 'wb') as file:
                 self.write(file)
         elif issubclass(type(fd), io.TextIOBase):
@@ -220,8 +221,8 @@ class Writer:
         elif issubclass(type(fd), io.BufferedIOBase):
             fd.write(self.document.toxml(encoding='UTF-8'))
         else:
-            raise ValueError("Expected a path or "
-                             + "file descriptor, got {}".format(type(fd)))
+            raise TypeError("Expected a path or "
+                            + "file descriptor, got {}".format(type(fd)))
 
     def __str__(self):
         """Print XML to string"""
