@@ -82,10 +82,7 @@ class DataArray:
             "NumberOfTuples": str(self.flat_data.size),
         }
 
-        if 'Int' in data_type:
-            self.format_str = '%d'
-        else:
-            self.format_str = '%.18e'
+        self.format_str = '%d' if 'Int' in data_type else '%.18e'
 
     def __str__(self):  # pragma: no cover
         return self.attributes.__str__()

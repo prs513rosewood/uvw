@@ -69,7 +69,7 @@ class VTKFile:
         :param data_array: DataArray instance
         :param vtk_format: data format. Can be:
             - ``'ascii'``: data is written with numpy.savetxt in-place
-            - ``'binaray'``: data is written in base64 (with possible
+            - ``'binary'``: data is written in base64 (with possible
             compression) in-place
             - ``'append'``: data is written in base64 (with possible
             compression) in the ``AppendData`` section
@@ -110,6 +110,13 @@ class ImageData(VTKFile):
     """VTK Image data (coordinates given by a range and constant spacing)"""
 
     def __init__(self, filename, ranges, points, **kwargs):
+        """
+        Init an ImageData file (regular orthogonal grid)
+
+        :param filename: name of file or file handle
+        :param ranges: list of pairs for coordinate ranges
+        :param points: list of number of points
+        """
         VTKFile.__init__(self, filename, 'ImageData', **kwargs)
 
         # Computing spacings
@@ -142,6 +149,12 @@ class RectilinearGrid(VTKFile):
     """VTK Rectilinear grid (coordinates are given by 3 seperate ranges)"""
 
     def __init__(self, filename, coordinates, offsets=None, **kwargs):
+        """
+        Init an RectilinearGrid file (irregular orthogonal grid)
+
+        :param filename: name of file or file handle
+        :param coordinates: list of coordinates for each direction
+        """
         VTKFile.__init__(self, filename, 'RectilinearGrid', **kwargs)
 
         # Checking that we actually have a list or tuple
@@ -204,6 +217,13 @@ class StructuredGrid(VTKFile):
     """VTK Structured grid (coordinates given by a single array of points)"""
 
     def __init__(self, filename, points, shape, **kwargs):
+        """
+        Init a StructuredGrid file (mesh of ordered quadrangle/hexahedron cells)
+
+        :param filename: name of file or file handle
+        :param points: 2D numpy array of point coordinates
+        :param shape: number of points in each spatial direction
+        """
         VTKFile.__init__(self, filename, 'StructuredGrid', **kwargs)
 
         if points.ndim != 2:
@@ -236,6 +256,13 @@ class UnstructuredGrid(VTKFile):
     "VTKUnstructuredGrid Data (data on nodes + connectivity)"
 
     def __init__(self, filename, nodes, connectivity, **kwargs):
+        """
+        Init an UnstructuredGrid file (mesh with connectivity)
+
+        :param filename: name of file or file handle
+        :param nodes: 2D numpy array of node coordinates
+        :param connectivity: dict with arrays for each cell type
+        """
         VTKFile.__init__(self, filename, 'UnstructuredGrid', **kwargs)
 
         if nodes.ndim != 2:
@@ -314,11 +341,25 @@ class ParaViewData:
     See: https://www.paraview.org/Wiki/ParaView/Data_formats#PVD_File_Format
     """
     def __init__(self, filename, **kwargs):
+        """
+        Initialize a PVD file
+        
+        PVD files contain references to other data files, and are convenient
+        to represent time series, for example.
+        """
         self.filename = filename
         self.writer = writer.Writer('Collection', **kwargs)
 
     def addFile(self, file, timestep=0, group="", part=0):
-        "Add a file to the group"
+        """
+        Add a file to the group
+        
+        :param file: filename or VTKFile instance
+        :param timestep: real-time value of file
+        :param group: group to add the file to
+        :param part: sub-part of the domain represented by file
+        """
+
         if issubclass(type(file), VTKFile):
             file = file.filename
 

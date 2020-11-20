@@ -63,6 +63,13 @@ class PRectilinearGrid(vtk_files.RectilinearGrid):
     parent = vtk_files.RectilinearGrid
 
     def __init__(self, filename, coordinates, offset, **kwargs):
+        """
+        Init the parallel counterpart of a RectilinearGrid file
+
+        :param filename: name of file or file handle
+        :param coordinates: list of coordinate arrays for this rank
+        :param offset: offset in global dataset for this rank
+        """
         _check_file_descriptor(filename)
         filename = str(filename)  # Ensure we have a string
         self.pfilename = filename
