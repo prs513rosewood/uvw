@@ -1,3 +1,4 @@
+"Tests for parallel writers"
 import numpy as np
 import pytest
 import vtk
@@ -22,27 +23,26 @@ def test_prectilinear_grid(field_data,
     out_name = 'test_prectilinear_grid.pvtr'
 
     compress = compression_fixture.param
-    format = format_fixture.param
+    vtk_format = format_fixture.param
     rect = PRectilinearGrid(out_name,
                             coords, dim * [0],
                             compression=compress,
                             byte_order=order)
-    rect.init_master(None)  # useless here: for coverage only
     rect.addPointData(
         DataArray(
             r, range(dim), 'point', components_order=ordering_fixture.param
         ),
-        vtk_format=format,
+        vtk_format=vtk_format,
     ).addCellData(
         DataArray(
             e_r, range(dim), 'cell', components_order=ordering_fixture.param
         ),
-        vtk_format=format,
+        vtk_format=vtk_format,
     ).addFieldData(
         DataArray(
             field, [0], 'field', components_order=ordering_fixture.param
         ),
-        vtk_format=format,
+        vtk_format=vtk_format,
     ).write()
 
     reader = vtkXMLPRectilinearGridReader()
@@ -86,10 +86,10 @@ def test_prectilinear_grid_mpi(compression_fixture, format_fixture):
     r = np.sqrt(xx**2 + yy**2 + zz**2)
 
     compress = compression_fixture.param
-    format = format_fixture.param
+    vtk_format = format_fixture.param
     rect = PRectilinearGrid(out_name, (x, y, z), offsets[rank],
                             compression=compress)
-    rect.addPointData(DataArray(r, range(3), 'R'), vtk_format=format)
+    rect.addPointData(DataArray(r, range(3), 'R'), vtk_format=vtk_format)
     rect.write()
 
     if rank == 0:

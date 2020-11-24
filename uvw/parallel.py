@@ -22,42 +22,61 @@ def _check_file_descriptor(fd):
     raise TypeError('Expected path, got {}'.format(fd))
 
 
-def MPIWrapper(cls):
-    "Wrap VTKFile functions with MPI variants"
-    orig_addPointData = cls.addPointData
-    orig_addCellData = cls.addCellData
-    orig_addFieldData = cls.addFieldData
-    orig_write = cls.write
+class PVTKFile(vtk_files.VTKFile):
+    "Generic parallel VTK file"
+
+    def __init__(self, filename, pfiletype, **kwargs):
+        """
+        Create a generic VTK file
+
+        :param filename: name of file (cannot be file handle)
+        :param filetype: VTK format of file
+        :param **kwargs: parameters forwarded to Writer
+        """
+        _check_file_descriptor(filename)
+        filename = str(filename)  # Ensure we have a string
+        self.pfilename = filename
+        self.pfiletype = pfiletype
+        self.comm = MPI.COMM_WORLD
+        self.rank = self.comm.Get_rank()
+
+        # Construct name of piece file
+        extension = splitext(filename)[1]
+        piece_extension = extension.replace('p', '')
+        self.piece_name_template = (
+            filename.replace(extension, '.rank{rank}') + piece_extension
+        )
+
+        # We deliberatly do not call VTKFile.__init__
+
+        self.pwriter = writer.Writer(self.pfiletype)
+        self.ppoint_data, self.pcell_data, self.pfield_data = [
+            self.pwriter.registerComponent(label, self.pwriter.data_node)
+            for label in "PPointData PCellData PFieldData".split()
+        ]
 
     def addPointData(self, array, *args, **kwargs):
         if self.rank == MASTER_RANK:
             self.ppoint_data.registerPDataArray(array, *args, **kwargs)
-        return orig_addPointData(self, array, *args, **kwargs)
+        return vtk_files.VTKFile.addPointData(self, array, *args, **kwargs)
 
     def addCellData(self, array, *args, **kwargs):
         if self.rank == MASTER_RANK:
             self.pcell_data.registerPDataArray(array, *args, **kwargs)
-        return orig_addCellData(self, array, *args, **kwargs)
+        return vtk_files.VTKFile.addCellData(self, array, *args, **kwargs)
 
     def addFieldData(self, array, *args, **kwargs):
         if self.rank == MASTER_RANK:
             self.pfield_data.registerPDataArray(array, *args, **kwargs)
-        return orig_addFieldData(self, array, *args, **kwargs)
+        return vtk_files.VTKFile.addFieldData(self, array, *args, **kwargs)
 
     def write(self):
-        orig_write(self)
+        vtk_files.VTKFile.write(self)
         if self.rank == MASTER_RANK:
             self.pwriter.write(self.pfilename)
 
-    cls.addPointData = addPointData
-    cls.addCellData = addCellData
-    cls.addFieldData = addFieldData
-    cls.write = write
-    return cls
 
-
-@MPIWrapper
-class PRectilinearGrid(vtk_files.RectilinearGrid):
+class PRectilinearGrid(PVTKFile, vtk_files.RectilinearGrid):
     """Rectilinear grid parallel writer"""
 
     parent = vtk_files.RectilinearGrid
@@ -70,18 +89,7 @@ class PRectilinearGrid(vtk_files.RectilinearGrid):
         :param coordinates: list of coordinate arrays for this rank
         :param offset: offset in global dataset for this rank
         """
-        _check_file_descriptor(filename)
-        filename = str(filename)  # Ensure we have a string
-        self.pfilename = filename
-        self.comm = MPI.COMM_WORLD
-        self.rank = self.comm.Get_rank()
-
-        # Construct name of piece file
-        extension = splitext(filename)[1]
-        piece_extension = extension.replace('p', '')
-        self.piece_name_template = (
-            filename.replace(extension, '.rank{rank}') + piece_extension
-        )
+        PVTKFile.__init__(self, filename, 'PRectilinearGrid', **kwargs)
 
         # Name of piece file associated to rank
         self.parent.__init__(
@@ -94,23 +102,14 @@ class PRectilinearGrid(vtk_files.RectilinearGrid):
 
         # Gather local data extents
         extents = self.comm.gather(self.extent, root=MASTER_RANK)
-        self.init_master(extents)
 
-    def init_master(self, extents):
+        # Ensure on master
         if not extents:
             return
 
-        self.pwriter = writer.Writer('P' + self.filetype)
-        data_node = self.pwriter.data_node
-        self.ppoint_data = self.pwriter.registerComponent('PPointData',
-                                                          data_node)
-        self.pcell_data = self.pwriter.registerComponent('PCellData',
-                                                         data_node)
-        self.pfield_data = self.pwriter.registerComponent('PFieldData',
-                                                          data_node)
         # Register coordinates
         pcoordinates = self.pwriter.registerComponent('PCoordinates',
-                                                      data_node)
+                                                      self.pwriter.data_node)
 
         for rank, extent in enumerate(extents):
             self.pwriter.registerPiece({
