@@ -5,13 +5,14 @@ UVW - Universal VTK Writer
 Status](https://coveralls.io/repos/github/prs513rosewood/uvw/badge.svg?branch=master)](https://coveralls.io/github/prs513rosewood/uvw?branch=master)
 [![PyPI Version](https://img.shields.io/pypi/v/uvw.svg)](https://pypi.org/project/uvw/)
 
-UVW is a small utility library to write VTK files from data contained in Numpy
-arrays. It handles fully-fledged `ndarrays` defined over {1, 2, 3}-d domains,
-with arbitrary number of components. There are no constraints on the particular
-order of components, although copy of data can be avoided if the array is
-Fortran contiguous, as VTK files are written in Fortran order. UVW supports
-multi-process writing of VTK files, so that it can be used in an MPI
-environment.
+UVW is a small utility library to write [XML VTK
+files](https://lorensen.github.io/VTKExamples/site/VTKFileFormats/#xml-file-formats)
+from data contained in Numpy arrays. It handles fully-fledged `ndarrays` defined
+over {1, 2, 3}-d domains, with arbitrary number of components. There are no
+constraints on the particular order of components, although copy of data can be
+avoided if the array is Fortran contiguous, as VTK files are written in Fortran
+order. UVW supports multi-process writing of VTK files, so that it can be used
+in an MPI environment.
 
 ## Getting Started
 
