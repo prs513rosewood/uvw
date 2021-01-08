@@ -109,7 +109,7 @@ class VTKFile:
 class ImageData(VTKFile):
     """VTK Image data (coordinates given by a range and constant spacing)"""
 
-    def __init__(self, filename, ranges, points, **kwargs):
+    def __init__(self, filename, ranges, points, offsets=None, **kwargs):
         """
         Init an ImageData file (regular orthogonal grid)
 
@@ -189,9 +189,7 @@ class RectilinearGrid(VTKFile):
 
         def fold_extent(acc, couple):
             offset, extent = couple
-
-            if offset != 0:
-                offset -= 1  # pragma: no cover
+            offset -= offset != 0
             return acc + "{} {} ".format(offset, offset+extent)
 
         # Create extent string with offsets
