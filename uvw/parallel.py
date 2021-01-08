@@ -4,7 +4,7 @@ Module with MPI-empowered classes for parallel VTK file types.
 import functools
 
 from os import PathLike
-from os.path import splitext
+from os.path import splitext, basename
 from mpi4py import MPI
 
 from . import writer
@@ -113,7 +113,7 @@ class PRectilinearGrid(PVTKFile, vtk_files.RectilinearGrid):
 
         for rank, extent in enumerate(extents):
             self.pwriter.registerPiece({
-                'Source': self.piece_name_template.format(rank=rank),
+                'Source': basename(self.piece_name_template.format(rank=rank)),
                 'Extent': extent
             })
 
