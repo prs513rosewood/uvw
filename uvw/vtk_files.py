@@ -22,11 +22,12 @@ def _make_3darray(points):
 
 def write_manager(cls):
     "Make a class into a context manager that writes on exit"
+
     def __enter__(self):
         return self
 
-    def __exit__(self, type, value, traceback):
-        if type is None:
+    def __exit__(self, err_type, *args):
+        if err_type is None:
             # Only write if no error
             self.write()
         return True
@@ -34,6 +35,26 @@ def write_manager(cls):
     cls.__enter__ = __enter__
     cls.__exit__ = __exit__
     return cls
+
+
+def _fold_extent(extent, offsets, dimension):
+    if offsets is None:
+        offsets = [0] * len(extent)
+    elif len(offsets) == dimension:
+        offsets = list(offsets)
+        offsets += [0] * (len(extent) - len(offsets))
+    else:
+        raise ValueError(
+            'Size of offsets should '
+            'match domain dimension {}'.format(dimension))
+
+    def fold_extent(acc, couple):
+        offset, extent = couple
+        offset -= offset != 0
+        return acc + "{} {} ".format(offset, offset+extent)
+
+    # Create extent string with offsets
+    return functools.reduce(fold_extent, zip(offsets, extent), "")
 
 
 @write_manager
@@ -127,21 +148,21 @@ class ImageData(VTKFile):
             points.append(1)
 
         # Setting extents, spacing and origin
-        extent = functools.reduce(
-            lambda x, y: x + "0 {} ".format(y-1), points, "")
+        self.extent = _fold_extent(list(map(lambda x: x-1, points)),
+                                   offsets, len(points))
         spacings = functools.reduce(
             lambda x, y: x + "{} ".format(y), spacings, "")
         origins = functools.reduce(
             lambda x, y: x + "{} ".format(y[0]), ranges, "")
 
         self.writer.setDataNodeAttributes({
-            'WholeExtent': extent,
+            'WholeExtent': self.extent,
             'Spacing': spacings,
             'Origin': origins
         })
 
         self.piece.setAttributes({
-            "Extent": extent
+            "Extent": self.extent
         })
 
 
@@ -177,23 +198,8 @@ class RectilinearGrid(VTKFile):
                     + ' (has {})'.format(coord.ndim))
             extent.append(coord.size-1)
 
-        if offsets is None:
-            offsets = [0] * len(extent)
-        elif len(offsets) == len(coordinates):
-            offsets = list(offsets)
-            offsets += [0] * (len(extent) - len(offsets))
-        else:
-            raise ValueError(
-                'Size of offsets should '
-                'match domain dimension {}'.format(len(coordinates)))
-
-        def fold_extent(acc, couple):
-            offset, extent = couple
-            offset -= offset != 0
-            return acc + "{} {} ".format(offset, offset+extent)
-
         # Create extent string with offsets
-        self.extent = functools.reduce(fold_extent, zip(offsets, extent), "")
+        self.extent = _fold_extent(extent, offsets, len(coordinates))
 
         self.writer.setDataNodeAttributes({
             "WholeExtent": self.extent
