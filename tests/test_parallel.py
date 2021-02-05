@@ -5,11 +5,11 @@ import vtk
 
 from mpi4py import MPI
 from vtk.util.numpy_support import vtk_to_numpy
-from vtk import vtkXMLPRectilinearGridReader
+from vtk import vtkXMLPRectilinearGridReader, vtkXMLPImageDataReader
 from conftest import get_vtk_data, clean
 from numpy import all
 
-from uvw.parallel import PRectilinearGrid
+from uvw.parallel import PRectilinearGrid, PImageData
 from uvw import DataArray
 
 
@@ -46,6 +46,54 @@ def test_prectilinear_grid(field_data,
     ).write()
 
     reader = vtkXMLPRectilinearGridReader()
+    vtk_r, vtk_e_r, vtk_f = get_vtk_data(reader, out_name)
+
+    vtk_r = vtk_r.reshape(r.shape, order='F')
+    vtk_e_r = vtk_e_r.reshape(e_r.shape, order='F') \
+                     .transpose(ordering_fixture.transp(dim))
+
+    assert all(vtk_r == r)
+    assert all(vtk_e_r == e_r)
+    assert all(vtk_f == field)
+
+    clean(rect)
+
+
+@pytest.mark.mpi_skip
+def test_pimagedata(field_data,
+                    compression_fixture,
+                    format_fixture,
+                    ordering_fixture):
+    coords, r, e_r, field, order = field_data
+    dim = r.ndim
+    out_name = 'test_pimagedata.pvti'
+
+    compress = compression_fixture.param
+    vtk_format = format_fixture.param
+    rect = PImageData(out_name,
+                      [(x.min(), x.max()) for x in coords],
+                      [x.size for x in coords],
+                      offsets=len(coords) * [0],
+                      compression=compress,
+                      byte_order=order)
+    rect.addPointData(
+        DataArray(
+            r, range(dim), 'point', components_order=ordering_fixture.param
+        ),
+        vtk_format=vtk_format,
+    ).addCellData(
+        DataArray(
+            e_r, range(dim), 'cell', components_order=ordering_fixture.param
+        ),
+        vtk_format=vtk_format,
+    ).addFieldData(
+        DataArray(
+            field, [0], 'field', components_order=ordering_fixture.param
+        ),
+        vtk_format=vtk_format,
+    ).write()
+
+    reader = vtkXMLPImageDataReader()
     vtk_r, vtk_e_r, vtk_f = get_vtk_data(reader, out_name)
 
     vtk_r = vtk_r.reshape(r.shape, order='F')

@@ -17,9 +17,27 @@ MASTER_RANK = 0
 
 
 def _check_file_descriptor(fd):
+    "Check path argument"
     if issubclass(type(fd), (str, PathLike)):
         return
     raise TypeError('Expected path, got {}'.format(fd))
+
+
+def _str_convert(ex):
+    "Convert string to list of pairs"
+    return list(zip(*map(lambda x: list(map(int, x.split())), ex)))
+
+
+def _min_max_reduce(extents):
+    "Convert string extents to list of integers"
+    mins = list(map(min, extents[0::2]))
+    maxs = list(map(max, extents[1::2]))
+
+    return functools.reduce(
+        lambda x, y: x + "{} {} ".format(y[0], y[0]+y[1]),
+        zip(mins, maxs),
+        ""
+    )
 
 
 class PVTKFile(vtk_files.VTKFile):
@@ -76,12 +94,65 @@ class PVTKFile(vtk_files.VTKFile):
             self.pwriter.write(self.pfilename)
 
 
+class PImageData(PVTKFile, vtk_files.ImageData):
+    "Image data parallel writer"
+
+    parent = vtk_files.ImageData
+
+    def __init__(self, filename, ranges, points, offsets, **kwargs):
+        """
+        Init an ImageData file (regular orthogonal grid)
+
+        :param filename: name of file or file handle
+        :param ranges: list of pairs for coordinate ranges
+        :param points: list of number of points
+        """
+        PVTKFile.__init__(self, filename, 'PImageData', **kwargs)
+        self.parent.__init__(
+            self,
+            self.piece_name_template.format(rank=self.rank),
+            ranges,
+            points,
+            offsets,
+            **kwargs
+        )
+
+        # Gather local data extents
+        extents = self.comm.gather(self.extent, root=MASTER_RANK)
+        spacings = [(x[1] - x[0]) / (n - 1) for x, n in zip(ranges, points)]
+        ranges = self.comm.gather(ranges, root=MASTER_RANK)
+
+        # Ensure on master
+        if not extents:
+            return
+
+        for rank, extent in enumerate(extents):
+            self.pwriter.registerPiece({
+                'Source': basename(self.piece_name_template.format(rank=rank)),
+                'Extent': extent
+            })
+
+        extents = _min_max_reduce(_str_convert(extents))
+        ranges = _min_max_reduce(ranges)
+
+        spacings = functools.reduce(
+            lambda x, y: x + "{} ".format(y), spacings, "")
+        origins = functools.reduce(
+            lambda x, y: x + "{} ".format(y[0]), ranges, "")
+
+        self.pwriter.setDataNodeAttributes({
+            'WholeExtent': extent,
+            'Spacing': spacings,
+            'Origin': origins
+        })
+
+
 class PRectilinearGrid(PVTKFile, vtk_files.RectilinearGrid):
-    """Rectilinear grid parallel writer"""
+    "Rectilinear grid parallel writer"
 
     parent = vtk_files.RectilinearGrid
 
-    def __init__(self, filename, coordinates, offset, **kwargs):
+    def __init__(self, filename, coordinates, offsets, **kwargs):
         """
         Init the parallel counterpart of a RectilinearGrid file
 
@@ -96,7 +167,7 @@ class PRectilinearGrid(PVTKFile, vtk_files.RectilinearGrid):
             self,
             self.piece_name_template.format(rank=self.rank),
             coordinates,
-            offset,
+            offsets,
             **kwargs
         )
 
@@ -118,15 +189,7 @@ class PRectilinearGrid(PVTKFile, vtk_files.RectilinearGrid):
             })
 
         # Convert string extents to list of integers
-        extents = list(zip(*map(lambda x: list(map(int, x.split())), extents)))
-        mins = list(map(min, extents[0::2]))
-        maxs = list(map(max, extents[1::2]))
-
-        extent = functools.reduce(
-            lambda x, y: x + "{} {} ".format(y[0], y[0]+y[1]),
-            zip(mins, maxs),
-            ""
-        )
+        extent = _min_max_reduce(_str_convert(extents))
 
         self.pwriter.setDataNodeAttributes({
             'WholeExtent': extent

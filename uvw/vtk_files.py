@@ -146,6 +146,7 @@ class ImageData(VTKFile):
         # Filling in missing coordinates
         for _ in range(len(points), 3):
             points.append(1)
+            offsets.append(0)
 
         # Setting extents, spacing and origin
         self.extent = _fold_extent(list(map(lambda x: x-1, points)),
@@ -344,10 +345,11 @@ class ParaViewData:
 
     See: https://www.paraview.org/Wiki/ParaView/Data_formats#PVD_File_Format
     """
+
     def __init__(self, filename, **kwargs):
         """
         Initialize a PVD file
-        
+
         PVD files contain references to other data files, and are convenient
         to represent time series, for example.
         """
@@ -357,7 +359,7 @@ class ParaViewData:
     def addFile(self, file, timestep=0, group="", part=0):
         """
         Add a file to the group
-        
+
         :param file: filename or VTKFile instance
         :param timestep: real-time value of file
         :param group: group to add the file to
