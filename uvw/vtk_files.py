@@ -366,11 +366,11 @@ class ParaViewData:
         :param part: sub-part of the domain represented by file
         """
 
-        if issubclass(type(file), VTKFile):
+        if isinstance(file, VTKFile):
             file = file.filename
 
         self.writer.registerComponent('DataSet', self.writer.data_node, dict(
-            timestep=str(timestep), group=group, part=str(part), file=file
+            timestep=str(timestep), group=group, part=str(part), file=str(file)
         ))
 
     def write(self):
