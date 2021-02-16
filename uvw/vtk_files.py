@@ -143,6 +143,9 @@ class ImageData(VTKFile):
         # Computing spacings
         spacings = [(x[1] - x[0]) / (n - 1) for x, n in zip(ranges, points)]
 
+        if offsets is None:
+            offsets = [0] * len(points)
+
         # Filling in missing coordinates
         for _ in range(len(points), 3):
             points.append(1)
