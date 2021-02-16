@@ -7,17 +7,6 @@ from vtk.util.numpy_support import vtk_to_numpy as v2n
 from uvw.data_array import DTYPE_TO_VTK
 
 
-def clean(*args):
-    for f in args:
-        try:
-            os.remove(f.filename)
-            os.remove(f.pfilename)
-        except FileNotFoundError:
-            pass
-        except AttributeError:
-            pass
-
-
 @pytest.fixture(params=DTYPE_TO_VTK.keys())
 def dtype_fixture(request):
     return request
@@ -72,8 +61,8 @@ def format_fixture(request):
 
 
 def get_vtk_data(reader, sstream):
-    if isinstance(sstream, str):
-        reader.SetFileName(sstream)
+    if issubclass(type(sstream), (str, os.PathLike)):
+        reader.SetFileName(str(sstream))
     else:
         reader.SetReadFromInputString(True)
         reader.SetInputString(sstream.getvalue())
