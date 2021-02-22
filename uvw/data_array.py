@@ -42,11 +42,11 @@ class DataArray:
         :param name: the name of the data
         :param components_order: the order of the non-spatial axes of the array
         """
-        self.data = data
-        axes = list(range(data.ndim))
+        self.data = np.asanyarray(data)
+        axes = list(range(self.data.ndim))
         spatial_axes = list(spatial_axes)
 
-        if data.ndim < len(spatial_axes):
+        if self.data.ndim < len(spatial_axes):
             raise ValueError(
                 'Dimensions of data smaller than space dimensions')
 
@@ -54,7 +54,7 @@ class DataArray:
             axes.remove(ax)
 
         nb_components = functools.reduce(
-            lambda x, y: x * data.shape[y], axes, 1)
+            lambda x, y: x * self.data.shape[y], axes, 1)
 
         if components_order == 'C':
             axes.reverse()
