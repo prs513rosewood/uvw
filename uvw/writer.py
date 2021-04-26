@@ -59,10 +59,7 @@ def encodeArray(array, level):
         header = np.array([array.nbytes], dtype=header_dtype)
         return header.tobytes(), memoryview(array)
 
-    if level is not None:
-        data = compress(array)
-    else:
-        data = raw(array)
+    data = raw(array) if level is None else compress(array)
     return "".join(map(lambda x: b64encode(x).decode(), data))
 
 
@@ -213,12 +210,12 @@ class Writer:
 
     def write(self, fd):
         """Write to file descriptor"""
-        if issubclass(type(fd), (str, PathLike)):
-            with open(fd, 'wb') as file:
-                self.write(file)
-        elif issubclass(type(fd), io.TextIOBase):
+        if isinstance(fd, (str, PathLike)):
+            with open(fd, 'wb') as fh:
+                self.write(fh)
+        elif isinstance(fd, io.TextIOBase):
             self.document.writexml(fd, indent="\n  ", addindent="  ")
-        elif issubclass(type(fd), io.BufferedIOBase):
+        elif isinstance(fd, io.BufferedIOBase):
             fd.write(self.document.toxml(encoding='UTF-8'))
         else:
             raise TypeError("Expected a path or "
