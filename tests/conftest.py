@@ -7,12 +7,12 @@ from vtk.util.numpy_support import vtk_to_numpy as v2n
 from uvw.data_array import DTYPE_TO_VTK
 
 
-@pytest.fixture(params=DTYPE_TO_VTK.keys())
+@pytest.fixture(params=DTYPE_TO_VTK.keys(), ids=str)
 def dtype_fixture(request):
     return request
 
 
-@pytest.fixture(params=[1, 2, 3])
+@pytest.fixture(params=[1, 2, 3], ids=lambda x: '{}D'.format(x))
 def field_data(request, dtype_fixture):
     N = 4
 
@@ -50,7 +50,7 @@ def field_data(request, dtype_fixture):
     return coords, r, e_r, f, order
 
 
-@pytest.fixture(params=[False, True])
+@pytest.fixture(params=[False, True], ids=['raw', 'compressed'])
 def compression_fixture(request):
     return request
 
