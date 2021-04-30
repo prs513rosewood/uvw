@@ -14,6 +14,6 @@ install:
     - python -m pip install --upgrade pytest pytest-mpi pytest-cov mpi4py vtk coveralls
     - python -m pip install -e .
 script:
-    - python -m pytest --cov=uvw tests
+    - python -m pytest --cov-config=.coverage.cfg --cov=uvw tests
 after_success:
     - coveralls
