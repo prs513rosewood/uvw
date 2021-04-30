@@ -1,12 +1,14 @@
 "Install script"
 import setuptools
+import versioneer
 
 with open("README.md", "r") as fh:
     long_description = fh.read().replace('lang=', '')
 
 setuptools.setup(
     name="uvw",
-    version="0.3.2",
+    version=versioneer.get_version(),
+    cmdclass=versioneer.get_cmdclass(),
     author="Lucas Frérot",
     author_email="lucas.frerot@protonmail.com",
     description="Universal VTK Writer for Numpy Arrays",

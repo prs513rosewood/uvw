@@ -1,0 +1,2 @@
+uvw/_version_src.py export-subst
+uvw/_version.py export-subst
