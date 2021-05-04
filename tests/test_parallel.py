@@ -143,7 +143,6 @@ def test_prectilinear_grid_mpi(compression_fixture,
                    (compression_fixture.param, format_fixture.param, tmp_path))
 
 
-@pytest.mark.xfail(reason="Not figured out how extents work for PImageData yet")
 @pytest.mark.mpi(min_size=2)
 def test_pimagedata_mpi(compression_fixture,
                         format_fixture,

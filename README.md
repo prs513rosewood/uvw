@@ -225,6 +225,7 @@ Here is a list of what is available in UVW:
 - Structured grid (`.vts`)
 - Unstructured grid (`.vtu`)
 - Parallel Rectilinear grid (`.pvtr`)
+- Parallel Image data (`.pvti`)
 - ParaView Data (`.pvd`)
 
 ### Data representation
@@ -244,7 +245,8 @@ Here is a list of future developments:
 - [x] Image data
 - [x] Unstructured grid
 - [x] Structured grid
-- [x] Parallel writing (`mpi4py`-enabled `PRectilinearGrid` *is now available!*)
+- [x] Parallel writing (`mpi4py`-enabled `PRectilinearGrid` and `PImageData`
+      *are now available!*)
 - [ ] Benchmarking + performance comparison with
       [pyevtk](https://github.com/pyscience-projects/pyevtk)
 

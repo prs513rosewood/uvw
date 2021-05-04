@@ -60,7 +60,7 @@ def encodeArray(array, level):
         return header.tobytes(), memoryview(array)
 
     data = raw(array) if level is None else compress(array)
-    return "".join(map(lambda x: b64encode(x).decode(), data))
+    return "".join(b64encode(x).decode() for x in data)
 
 
 class Component:

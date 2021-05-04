@@ -152,7 +152,7 @@ class ImageData(VTKFile):
             offsets.append(0)
 
         # Setting extents, spacing and origin
-        self.extent = _fold_extent(list(map(lambda x: x-1, points)),
+        self.extent = _fold_extent([x - 1 for x in points],
                                    offsets, len(points))
         spacings = functools.reduce(
             lambda x, y: x + "{} ".format(y), spacings, "")
@@ -296,7 +296,7 @@ class UnstructuredGrid(VTKFile):
         )
 
         flat_connectivity = np.empty(
-            sum(map(lambda x: x.size, connectivity.values())),
+            sum(x.size for x in connectivity.values()),
             dtype=np.int32,
         )
 

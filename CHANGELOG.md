@@ -11,6 +11,7 @@ and this project adheres to [PEP
 ### Added
 
 - Support for `os.PathLike` for filenames
+- Support for `PImageData`
 
 ### Changed
 

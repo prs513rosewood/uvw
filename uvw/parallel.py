@@ -18,20 +18,19 @@ MASTER_RANK = 0
 
 def _check_file_descriptor(fd):
     "Check path argument"
-    if issubclass(type(fd), (str, PathLike)):
-        return
-    raise TypeError('Expected path, got {}'.format(fd))
+    if not issubclass(type(fd), (str, PathLike)):
+        raise TypeError('Expected path, got {}'.format(fd))
 
 
 def _str_convert(ex):
-    "Convert string to list of pairs"
-    return list(zip(*map(lambda x: list(map(int, x.split())), ex)))
+    "Convert list of string extents to list of tuples gathering mins and maxs"
+    return list(zip(*((int(x) for x in s.split()) for s in ex)))
 
 
 def _min_max_reduce(extents):
-    "Convert string extents to list of integers"
-    mins = list(map(min, extents[0::2]))
-    maxs = list(map(max, extents[1::2]))
+    "Reduce local extents to global extent by looking for mins and maxs"
+    mins = map(min, extents[0::2])
+    maxs = map(max, extents[1::2])
 
     return functools.reduce(
         lambda x, y: x + "{} {} ".format(y[0], y[0]+y[1]),
@@ -133,7 +132,15 @@ class PImageData(PVTKFile, vtk_files.ImageData):
             })
 
         extents = _min_max_reduce(_str_convert(extents))
-        ranges = _min_max_reduce(ranges)
+
+        # Reducing domain ranges
+        mins, maxs = [], []
+        for r in ranges:
+            mins.append(list(map(min, r)))
+            maxs.append(list(map(max, r)))
+        mins = list(zip(*mins))
+        maxs = list(zip(*maxs))
+        ranges = [(min(rmin), max(rmax)) for rmin, rmax in zip(mins, maxs)]
 
         spacings = functools.reduce(
             lambda x, y: x + "{} ".format(y), spacings, "")
@@ -141,7 +148,7 @@ class PImageData(PVTKFile, vtk_files.ImageData):
             lambda x, y: x + "{} ".format(y[0]), ranges, "")
 
         self.pwriter.setDataNodeAttributes({
-            'WholeExtent': extent,
+            'WholeExtent': extents,
             'Spacing': spacings,
             'Origin': origins
         })

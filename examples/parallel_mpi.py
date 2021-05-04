@@ -3,7 +3,7 @@ import numpy as np
 
 from mpi4py import MPI
 
-from uvw.parallel import PRectilinearGrid
+from uvw.parallel import PRectilinearGrid, PImageData
 from uvw import DataArray
 
 
@@ -54,5 +54,13 @@ data = np.exp(-r**2)
 proc = np.ones((x.size-1, y.size-1)) * rank
 
 with PRectilinearGrid(out_name, (x, y), offsets[rank]) as rect:
+    rect.addPointData(DataArray(data, range(2), 'gaussian'))
+    rect.addCellData(DataArray(proc, range(2), 'proc'))
+
+
+out_name = 'parallel_mpi.pvti'
+ranges = [bounds[rank]['x'], bounds[rank]['y']]
+points = [sizes[rank]['x'], sizes[rank]['y']]
+with PImageData(out_name, ranges, points, offsets[rank]) as rect:
     rect.addPointData(DataArray(data, range(2), 'gaussian'))
     rect.addCellData(DataArray(proc, range(2), 'proc'))
