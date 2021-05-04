@@ -8,6 +8,8 @@ and this project adheres to [PEP
 
 ## Unreleased
 
+## v0.4.0 -- 2021-05-04
+
 ### Added
 
 - Support for `os.PathLike` for filenames
