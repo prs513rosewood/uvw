@@ -1,7 +1,7 @@
 """
 Module with classes for interacting with the XML model underlying VTK files.
 
-See https://lorensen.github.io/VTKExamples/site/VTKFileFormats/ for format
+See https://kitware.github.io/vtk-examples/site/VTKFileFormats/ for format
 description.
 """
 import xml.dom.minidom as dom

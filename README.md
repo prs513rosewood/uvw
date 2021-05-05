@@ -6,7 +6,7 @@ Status](https://coveralls.io/repos/github/prs513rosewood/uvw/badge.svg?branch=ma
 [![PyPI Version](https://img.shields.io/pypi/v/uvw.svg)](https://pypi.org/project/uvw/)
 
 UVW is a small utility library to write [XML VTK
-files](https://lorensen.github.io/VTKExamples/site/VTKFileFormats/#xml-file-formats)
+files](https://kitware.github.io/vtk-examples/site/VTKFileFormats/#xml-file-formats)
 from data contained in Numpy arrays. It handles fully-fledged `ndarrays` defined
 over {1, 2, 3}-d domains, with arbitrary number of components. There are no
 constraints on the particular order of components, although copy of data can be
@@ -23,7 +23,7 @@ Here is how to install and use `uvw`.
 * Python 3. It may work with python 2, but it hasn't been tested.
 * [Numpy](http://www.numpy.org/). This code has been tested with Numpy version
   1.14.3.
-* [mpi4py](https://mpi4py.readthedocs.io/en/stable/) only if you wish to use the
+* (Optional) [mpi4py](https://mpi4py.readthedocs.io/en/stable/) only if you wish to use the
   parallel classes of UVW (i.e. the submodule `uvw.parallel`)
 
 ### Installing
@@ -205,7 +205,7 @@ f.write()
 
 As you can see, cell types can be specified with the `unstructured.CellType`
 enumeration or with the underlying integer value (see
-[VTKFileFormats](https://lorensen.github.io/VTKExamples/site/VTKFileFormats/)
+[VTKFileFormats](https://kitware.github.io/vtk-examples/site/VTKFileFormats/)
 for more info). `UnstructuredGrid` performs a sanity check of the connectivity
 to see if the number of nodes matches the cell type.
 
