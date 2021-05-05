@@ -226,7 +226,8 @@ class StructuredGrid(VTKFile):
 
     def __init__(self, filename, points, shape, **kwargs):
         """
-        Init a StructuredGrid file (mesh of ordered quadrangle/hexahedron cells)
+        Init a StructuredGrid file (mesh of ordered quadrangle/hexahedron
+        cells)
 
         :param filename: name of file or file handle
         :param points: 2D numpy array of point coordinates
@@ -241,7 +242,7 @@ class StructuredGrid(VTKFile):
         points = _make_3darray(points)
 
         extent = [n - 1 for n in shape]
-        for i in range(len(extent), 3):
+        for _ in range(len(extent), 3):
             extent.append(0)
 
         extent = functools.reduce(
