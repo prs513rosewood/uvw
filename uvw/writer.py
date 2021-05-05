@@ -12,6 +12,7 @@ import numpy as np
 
 from base64 import b64encode
 from os import PathLike
+from collections.abc import Mapping
 
 
 def setAttributes(node, attributes):
@@ -80,7 +81,7 @@ class Component:
         if attributes is None:
             attributes = {}
 
-        if not isinstance(attributes, dict):
+        if not isinstance(attributes, Mapping):
             raise ValueError(
                 'Cannot register attributes of type ' + str(type(attributes)))
 
