@@ -2,6 +2,10 @@
 Module defining class (`DataArray`) used to represent Numpy arrays in XML
 model.
 """
+
+__copyright__ = "Copyright © 2018-2021 Lucas Frérot"
+__license__ = "SPDX-License-Identifier: MIT"
+
 import functools
 import numpy as np
 

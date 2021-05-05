@@ -44,6 +44,9 @@ SOFTWARE.
 
 """
 
+__copyright__ = "Copyright © 2018-2021 Lucas Frérot"
+__license__ = "SPDX-License-Identifier: MIT"
+
 from .. import vtk_files as vtk
 from ..data_array import DataArray
 

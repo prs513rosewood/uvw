@@ -1,6 +1,10 @@
 """
 Module with MPI-empowered classes for parallel VTK file types.
 """
+
+__copyright__ = "Copyright © 2018-2021 Lucas Frérot"
+__license__ = "SPDX-License-Identifier: MIT"
+
 import functools
 
 from os import PathLike

@@ -1,3 +1,6 @@
+__copyright__ = "Copyright © 2018-2021 Lucas Frérot"
+__license__ = "SPDX-License-Identifier: MIT"
+
 import os
 import pytest
 import numpy as np

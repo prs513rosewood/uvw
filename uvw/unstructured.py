@@ -2,6 +2,9 @@
 Module with class for cell types in vtkUnstructuredGrid
 """
 
+__copyright__ = "Copyright © 2018-2021 Lucas Frérot"
+__license__ = "SPDX-License-Identifier: MIT"
+
 from enum import Enum, unique
 
 import numpy as np

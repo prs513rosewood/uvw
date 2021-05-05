@@ -4,6 +4,10 @@ Module with classes for interacting with the XML model underlying VTK files.
 See https://kitware.github.io/vtk-examples/site/VTKFileFormats/ for format
 description.
 """
+
+__copyright__ = "Copyright © 2018-2021 Lucas Frérot"
+__license__ = "SPDX-License-Identifier: MIT"
+
 import xml.dom.minidom as dom
 import io
 import zlib

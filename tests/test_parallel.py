@@ -1,4 +1,8 @@
 "Tests for parallel writers"
+
+__copyright__ = "Copyright © 2018-2021 Lucas Frérot"
+__license__ = "SPDX-License-Identifier: MIT"
+
 import numpy as np
 import pytest
 

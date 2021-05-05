@@ -1,2 +1,3 @@
 include versioneer.py
 include uvw/_version.py
+include LICENSE.md

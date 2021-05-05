@@ -1,6 +1,10 @@
 """
 Module with classes corresponding to VTK file types.
 """
+
+__copyright__ = "Copyright © 2018-2021 Lucas Frérot"
+__license__ = "SPDX-License-Identifier: MIT"
+
 import functools
 import numpy as np
 
