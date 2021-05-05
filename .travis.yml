@@ -15,6 +15,6 @@ install:
     - python -m pip install -e .
 script:
     - python -m pytest --cov-config=.covrc --cov=uvw tests
-    - mpiexec -np 2 pytest --cov-config=.covrc --cov-append tests --only-mpi
+    - mpiexec -np 2 pytest --cov-config=.covrc --cov-append --cov=uvw tests --only-mpi
 after_success:
     - coveralls
