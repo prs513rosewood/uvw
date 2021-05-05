@@ -24,23 +24,6 @@ def _make_3darray(points):
     return points_3d
 
 
-def write_manager(cls):
-    "Make a class into a context manager that writes on exit"
-
-    def __enter__(self):
-        return self
-
-    def __exit__(self, err_type, *args):
-        if err_type is None:
-            # Only write if no error
-            self.write()
-        return True
-
-    cls.__enter__ = __enter__
-    cls.__exit__ = __exit__
-    return cls
-
-
 def _fold_extent(extent, offsets, dimension):
     if offsets is None:
         offsets = [0] * len(extent)
@@ -61,8 +44,23 @@ def _fold_extent(extent, offsets, dimension):
     return functools.reduce(fold_extent, zip(offsets, extent), "")
 
 
-@write_manager
-class VTKFile:
+class WriteManager:
+    "Context manager that writes on exit"
+
+    def write(self):
+        raise NotImplementedError()
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, err_type, *_):
+        if err_type is None:
+            # Only write if no error
+            self.write()
+        return True
+
+
+class VTKFile(WriteManager):
     """Generic VTK file"""
 
     def __init__(self, filename, filetype, **kwargs):
@@ -297,9 +295,11 @@ class UnstructuredGrid(VTKFile):
             DataArray(nodes, [0], 'points'), vtk_format='ascii',
         )
 
+        int32 = np.dtype('i4')
+
         flat_connectivity = np.empty(
             sum(len(cell) for x in connectivity.values() for cell in x),
-            dtype=np.int32,
+            dtype=int32,
         )
 
         # Flattening the connectivities for each element type
@@ -309,7 +309,7 @@ class UnstructuredGrid(VTKFile):
                 flat_connectivity[offset:offset+len(cell)] = cell
                 offset += len(cell)
 
-        offsets = np.empty(ncells, dtype=np.int32)
+        offsets = np.empty(ncells, dtype=int32)
 
         offset, index = 0, 0
         for conn in connectivity.values():
@@ -318,7 +318,7 @@ class UnstructuredGrid(VTKFile):
                 offsets[index] = offset
                 index += 1
 
-        types = np.empty(ncells, dtype=np.int32)
+        types = np.empty(ncells, dtype=int32)
 
         offset = 0
         for k, conn in connectivity.items():
@@ -344,8 +344,7 @@ class UnstructuredGrid(VTKFile):
         )
 
 
-@write_manager
-class ParaViewData:
+class ParaViewData(WriteManager):
     """
     Groups VTK files into a single description.
 
