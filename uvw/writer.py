@@ -8,9 +8,12 @@ description.
 __copyright__ = "Copyright © 2018-2021 Lucas Frérot"
 __license__ = "SPDX-License-Identifier: MIT"
 
+from .data_array import DataArray
+
 import xml.dom.minidom as dom
 import io
 import zlib
+import typing as ts
 
 import numpy as np
 
@@ -19,13 +22,13 @@ from os import PathLike
 from collections.abc import Mapping
 
 
-def setAttributes(node, attributes):
+def setAttributes(node: dom.Node, attributes: ts.Mapping[str, ts.Any]):
     """Set attributes of a node"""
     for item in attributes.items():
         node.setAttribute(*item)
 
 
-def encodeArray(array, level):
+def encodeArray(array: np.ndarray, level: int) -> str:
     """Encode array data and header in base64."""
     def compress(array):
         """Compress array with zlib. Returns header and compressed data."""
@@ -64,36 +67,43 @@ def encodeArray(array, level):
         header = np.array([array.nbytes], dtype=header_dtype)
         return header.tobytes(), memoryview(array)
 
-    data = raw(array) if level is None else compress(array)
+    data = raw(array) if level == 0 else compress(array)
     return "".join(b64encode(x).decode() for x in data)
 
 
 class Component:
     """Generic component class capable of registering sub-components"""
 
-    def __init__(self, name, parent_node, writer):
+    def __init__(self, name: str, parent_node: dom.Node, writer):
         self.writer = writer
         self.document = writer.document
         self.node = self.document.createElement(name)
         parent_node.appendChild(self.node)
 
-    def setAttributes(self, attributes):
+    def setAttributes(self, attributes: ts.Mapping[str, ts.Any]):
         setAttributes(self.node, attributes)
 
-    def register(self, name, attributes=None):
+    def register(
+            self,
+            name: str,
+            attributes: ts.Optional[ts.Mapping[str, ts.Any]] = None
+    ) -> 'Component':
         """Register a sub-component"""
         if attributes is None:
             attributes = {}
 
         if not isinstance(attributes, Mapping):
             raise ValueError(
-                'Cannot register attributes of type ' + str(type(attributes)))
+                f'Cannot register attributes of type {type(attributes)}')
 
         sub_component = Component(name, self.node, self.writer)
         setAttributes(sub_component.node, attributes)
         return sub_component
 
-    def _addArrayNodeData(self, data_array, component, vtk_format):
+    def _addArrayNodeData(self,
+                          data_array: DataArray,
+                          component: 'Component',
+                          vtk_format: str):
         if vtk_format == 'ascii':
             sstream = io.StringIO()
             np.savetxt(
@@ -109,26 +119,32 @@ class Component:
                                       self.writer.compression)
         elif vtk_format == 'append':
             self.writer.append_data_arrays[component] = data_array
+            return
         else:
             raise ValueError(f'Unsupported VTK Format "{vtk_format}"')
 
-        if vtk_format != 'append':
-            component.node.appendChild(
-                self.document.createTextNode(data_as_str))
+        component.node.appendChild(self.document.createTextNode(data_as_str))
 
-    def _registerArrayComponent(self, array, name, vtk_format):
+    def _registerArrayComponent(self,
+                                array: DataArray,
+                                name: str,
+                                vtk_format: str):
         attributes = array.attributes
         attributes['format'] = vtk_format
         return self.register(name, attributes)
 
-    def registerDataArray(self, data_array, vtk_format='binary'):
+    def registerDataArray(self,
+                          data_array: DataArray,
+                          vtk_format: str = 'binary'):
         """Register a DataArray object"""
         component = self._registerArrayComponent(data_array,
                                                  'DataArray',
                                                  vtk_format)
         self._addArrayNodeData(data_array, component, vtk_format)
 
-    def registerPDataArray(self, data_array, vtk_format='binary'):
+    def registerPDataArray(self,
+                           data_array: DataArray,
+                           vtk_format: str = 'binary'):
         """Register a DataArray object in p-file"""
         self._registerArrayComponent(data_array, 'PDataArray', vtk_format)
 
@@ -136,10 +152,10 @@ class Component:
 class Writer:
     """Generic XML handler for VTK files"""
 
-    def __init__(self, vtk_format,
-                 compression=None,
-                 vtk_version='0.1',
-                 byte_order='LittleEndian'):
+    def __init__(self, vtk_format: str,
+                 compression: ts.Optional[ts.Union[bool, int]] = None,
+                 vtk_version: str = '0.1',
+                 byte_order: str = 'LittleEndian'):
         """
         Create an XML writer
 
@@ -163,33 +179,37 @@ class Writer:
         self.root.setAttribute('byte_order', byte_order)
         self.data_node = self.document.createElement(vtk_format)
         self.root.appendChild(self.data_node)
-        self.size_indicator_bytes = np.dtype(np.uint32).itemsize
+        self.size_indicator_bytes = np.dtype('u4').itemsize
         self.append_data_arrays = {}
 
-        if compression is not None and compression is not False:
+        if compression is None or compression is False or compression == 0:
+            self.compression = 0
+        elif compression is True:
+            self.compression = -1
+        elif compression in list(range(-1, 10)):
+            self.compression = compression
+        else:
+            raise ValueError(f'compression level {compression} is not '
+                             'recognized by zlib')
+
+        if self.compression != 0:
             self.root.setAttribute('compressor', 'vtkZLibDataCompressor')
 
-            if not isinstance(compression, int):
-                compression = -1
-            else:
-                if compression not in list(range(-1, 10)):
-                    raise ValueError(f'compression level {compression} is not '
-                                     'recognized by zlib')
-        elif not compression:
-            compression = None
-
-        self.compression = compression
-
-    def setDataNodeAttributes(self, attributes):
+    def setDataNodeAttributes(self, attributes: ts.Mapping[str, ts.Any]):
         """Set attributes for the entire dataset"""
         setAttributes(self.data_node, attributes)
 
-    def registerPiece(self, attributes={}):
+    def registerPiece(self, attributes: ts.Mapping[str, ts.Any] = {}):
         """Register a piece element"""
         return self.registerComponent('Piece', self.data_node,
                                       attributes)
 
-    def registerComponent(self, name, parent, attributes={}):
+    def registerComponent(
+            self,
+            name: str,
+            parent: dom.Node,
+            attributes: ts.Mapping[str, ts.Any] = {}
+    ) -> Component:
         """Register a Component to a parent Component with set attributes"""
         comp = Component(name, parent, self)
         setAttributes(comp.node, attributes)
@@ -212,7 +232,8 @@ class Writer:
         text = self.document.createTextNode(data_str)
         append_node.node.appendChild(text)
 
-    def write(self, fd):
+    def write(self,
+              fd: ts.Union[str, PathLike, io.TextIOBase, io.BufferedIOBase]):
         """Write to file descriptor"""
         if isinstance(fd, (str, PathLike)):
             with open(fd, 'wb') as fh:
@@ -224,6 +245,6 @@ class Writer:
         else:
             raise TypeError(f"Expected a path or file descriptor, got {fd}")
 
-    def __str__(self):
+    def __str__(self) -> str:
         """Print XML to string"""
         return self.document.toprettyxml()
