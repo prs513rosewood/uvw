@@ -164,7 +164,7 @@ class Writer:
         if compression is not None and compression is not False:
             self.root.setAttribute('compressor', 'vtkZLibDataCompressor')
 
-            if type(compression) is not int:
+            if not isinstance(compression, int):
                 compression = -1
             else:
                 if compression not in list(range(-1, 10)):

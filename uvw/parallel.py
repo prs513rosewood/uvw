@@ -18,7 +18,7 @@ MASTER_RANK = 0
 
 def _check_file_descriptor(fd):
     "Check path argument"
-    if not issubclass(type(fd), (str, PathLike)):
+    if not isinstance(fd, (str, PathLike)):
         raise TypeError('Expected path, got {}'.format(fd))
 
 

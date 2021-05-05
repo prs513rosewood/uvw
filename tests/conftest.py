@@ -61,7 +61,7 @@ def format_fixture(request):
 
 
 def get_vtk_data(reader, sstream):
-    if issubclass(type(sstream), (str, os.PathLike)):
+    if isinstance(sstream, (str, os.PathLike)):
         reader.SetFileName(str(sstream))
     else:
         reader.SetReadFromInputString(True)
