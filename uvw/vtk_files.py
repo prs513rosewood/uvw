@@ -50,12 +50,12 @@ def _fold_extent(extent, offsets, dimension):
     else:
         raise ValueError(
             'Size of offsets should '
-            'match domain dimension {}'.format(dimension))
+            f'match domain dimension {dimension}')
 
     def fold_extent(acc, couple):
         offset, extent = couple
         offset -= offset != 0
-        return acc + "{} {} ".format(offset, offset+extent)
+        return acc + f"{offset} {offset+extent} "
 
     # Create extent string with offsets
     return functools.reduce(fold_extent, zip(offsets, extent), "")
@@ -158,10 +158,8 @@ class ImageData(VTKFile):
         # Setting extents, spacing and origin
         self.extent = _fold_extent([x - 1 for x in points],
                                    offsets, len(points))
-        spacings = functools.reduce(
-            lambda x, y: x + "{} ".format(y), spacings, "")
-        origins = functools.reduce(
-            lambda x, y: x + "{} ".format(y[0]), ranges, "")
+        spacings = functools.reduce(lambda x, y: x + f"{y} ", spacings, "")
+        origins = functools.reduce(lambda x, y: x + f"{y[0]} ", ranges, "")
 
         self.writer.setDataNodeAttributes({
             'WholeExtent': self.extent,
@@ -203,7 +201,7 @@ class RectilinearGrid(VTKFile):
             if coord.ndim != 1:
                 raise ValueError(
                     'Coordinate array should have only one dimension'
-                    + ' (has {})'.format(coord.ndim))
+                    f' (has {coord.ndim})')
             extent.append(coord.size-1)
 
         # Create extent string with offsets
@@ -249,8 +247,7 @@ class StructuredGrid(VTKFile):
         for _ in range(len(extent), 3):
             extent.append(0)
 
-        extent = functools.reduce(
-            lambda x, y: x + "0 {} ".format(y), extent, "")
+        extent = functools.reduce(lambda x, y: x + f"0 {y} ", extent, "")
         self.writer.setDataNodeAttributes({
             "WholeExtent": extent
         })

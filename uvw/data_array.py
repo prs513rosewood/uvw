@@ -76,8 +76,7 @@ class DataArray:
             data_type = DTYPE_TO_VTK[self.flat_data.dtype]
         except KeyError:
             raise TypeError(
-                'Array dtype {} is not supported by VTK'.format(
-                    self.flat_data.dtype))
+                f'Array dtype {self.flat_data.dtype} is not supported by VTK')
 
         self.attributes = {
             "Name": name,

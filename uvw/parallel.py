@@ -23,7 +23,7 @@ MASTER_RANK = 0
 def _check_file_descriptor(fd):
     "Check path argument"
     if not isinstance(fd, (str, PathLike)):
-        raise TypeError('Expected path, got {}'.format(fd))
+        raise TypeError(f'Expected path, got {fd}')
 
 
 def _str_convert(ex):
@@ -37,7 +37,7 @@ def _min_max_reduce(extents):
     maxs = map(max, extents[1::2])
 
     return functools.reduce(
-        lambda x, y: x + "{} {} ".format(y[0], y[0]+y[1]),
+        lambda x, y: x + f"{y[0]} {y[0]+y[1]} ",
         zip(mins, maxs),
         ""
     )
@@ -146,10 +146,8 @@ class PImageData(PVTKFile, vtk_files.ImageData):
         maxs = list(zip(*maxs))
         ranges = [(min(rmin), max(rmax)) for rmin, rmax in zip(mins, maxs)]
 
-        spacings = functools.reduce(
-            lambda x, y: x + "{} ".format(y), spacings, "")
-        origins = functools.reduce(
-            lambda x, y: x + "{} ".format(y[0]), ranges, "")
+        spacings = functools.reduce(lambda x, y: x + f"{y} ", spacings, "")
+        origins = functools.reduce(lambda x, y: x + f"{y[0]} ", ranges, "")
 
         self.pwriter.setDataNodeAttributes({
             'WholeExtent': extents,

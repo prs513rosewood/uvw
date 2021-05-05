@@ -51,7 +51,7 @@ def encodeArray(array, level):
         )
 
         # Header data (cf https://vtk.org/Wiki/VTK_XML_Formats#Compressed_Data)
-        header_dtype = np.dtype('{}u4'.format(array.dtype.byteorder))
+        header_dtype = np.dtype(array.dtype.byteorder + 'u4')
         usize = max_block_size
         psize = last_block_size
         csize = [len(x) for x in compressed_data]
@@ -60,7 +60,7 @@ def encodeArray(array, level):
 
     def raw(array):
         """Returns header and array data in bytes."""
-        header_dtype = np.dtype('{}u4'.format(array.dtype.byteorder))
+        header_dtype = np.dtype(array.dtype.byteorder + 'u4')
         header = np.array([array.nbytes], dtype=header_dtype)
         return header.tobytes(), memoryview(array)
 
@@ -110,7 +110,7 @@ class Component:
         elif vtk_format == 'append':
             self.writer.append_data_arrays[component] = data_array
         else:
-            raise ValueError('Unsupported VTK Format "{}"'.format(vtk_format))
+            raise ValueError(f'Unsupported VTK Format "{vtk_format}"')
 
         if vtk_format != 'append':
             component.node.appendChild(
@@ -151,8 +151,9 @@ class Writer:
 
         valid_orders = {"LittleEndian", "BigEndian"}
         if byte_order not in valid_orders:
-            raise ValueError("Byte order '{}' invalid, should be in {}"
-                             .format(byte_order, valid_orders))
+            raise ValueError(
+                f"Byte order '{byte_order}' invalid, "
+                f"should be in {valid_orders}")
 
         self.document = dom.getDOMImplementation()  \
                            .createDocument(None, 'VTKFile', None)
@@ -172,10 +173,8 @@ class Writer:
                 compression = -1
             else:
                 if compression not in list(range(-1, 10)):
-                    raise ValueError(
-                        ('compression level {} is not '
-                         'recognized by zlib').format(compression)
-                    )
+                    raise ValueError(f'compression level {compression} is not '
+                                     'recognized by zlib')
         elif not compression:
             compression = None
 
@@ -223,8 +222,7 @@ class Writer:
         elif isinstance(fd, io.BufferedIOBase):
             fd.write(self.document.toxml(encoding='UTF-8'))
         else:
-            raise TypeError("Expected a path or "
-                            + "file descriptor, got {}".format(type(fd)))
+            raise TypeError(f"Expected a path or file descriptor, got {fd}")
 
     def __str__(self):
         """Print XML to string"""

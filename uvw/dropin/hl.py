@@ -118,10 +118,9 @@ def imageToVTK(
         value = next(iter(value.values()))
         if isinstance(value, np.ndarray) and value.ndim == 3:
             return [s + offset for s in value.shape]
-        elif isinstance(value, Sequence) and value[0].ndim == 3:
+        if isinstance(value, Sequence) and value[0].ndim == 3:
             return [s + offset for s in value[0].shape]
-        else:
-            raise RuntimeError("Invalid dimension of {}".format(name))
+        raise RuntimeError(f"Invalid dimension of {name}")
 
     # Deducing image size
     if cellData:

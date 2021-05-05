@@ -15,14 +15,14 @@ def dtype_fixture(request):
     return request
 
 
-@pytest.fixture(params=[1, 2, 3], ids=lambda x: '{}D'.format(x))
+@pytest.fixture(params=[1, 2, 3], ids=lambda x: f'{x}D')
 def field_data(request, dtype_fixture):
     N = 4
 
     dim = request.param
     order = "LittleEndian" if dtype_fixture.param.byteorder in "<=|" \
         else "BigEndian"
-    float_dtype = np.dtype('{}f8'.format(dtype_fixture.param.byteorder))
+    float_dtype = np.dtype(dtype_fixture.param.byteorder + 'f8')
 
     if dim == 1:
         x = np.linspace(0, 1, N*2, dtype=float_dtype)
