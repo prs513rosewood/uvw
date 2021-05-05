@@ -296,15 +296,16 @@ class UnstructuredGrid(VTKFile):
         )
 
         flat_connectivity = np.empty(
-            sum(x.size for x in connectivity.values()),
+            sum(len(cell) for x in connectivity.values() for cell in x),
             dtype=np.int32,
         )
 
         # Flattening the connectivities for each element type
         offset = 0
         for conn in connectivity.values():
-            flat_connectivity[offset:offset+conn.size] = conn.flatten()
-            offset += conn.size
+            for cell in conn:
+                flat_connectivity[offset:offset+len(cell)] = cell
+                offset += len(cell)
 
         offsets = np.empty(ncells, dtype=np.int32)
 

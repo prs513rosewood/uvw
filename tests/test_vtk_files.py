@@ -152,11 +152,15 @@ def test_unstructured_grid(compression_fixture, format_fixture):
     ])
 
     point_data = np.array([[0, 1], [1, 2], [2, 3]])
-    cell_data = np.array([1, 2])
+    cell_data = np.array([1, 2, 3, 4])
 
     connectivity = {
         CellType.TRIANGLE: np.array([range(3)], dtype=np.int32),
         6: np.array([[0, 1, 2]], dtype=np.int32),  # Testing true VTK type id
+        CellType.POLY_LINE: np.array([  # Testing variable length cell type
+            [0, 1],
+            [1, 2, 0],
+        ]),
     }
 
     grid = UnstructuredGrid(f, nodes, connectivity, compression=compress)
