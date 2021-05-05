@@ -1,2 +1,4 @@
 [run]
-omit = uvw/_version.py
+omit =
+    uvw/_version.py
+    uvw/dropin/*

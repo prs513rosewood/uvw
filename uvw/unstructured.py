@@ -94,14 +94,15 @@ def check_connectivity(connectivity):
         if not isinstance(conn, np.ndarray):
             raise TypeError("Connectivity needs to be of type numpy.ndarray")
 
-        int_types = [
+        int_types = {
             dtype for dtype, label in DTYPE_TO_VTK.items() if 'Int' in label
-        ]
+        }
 
-        if conn.dtype not in int_types:
-            raise TypeError("Connectivity dtype needs to be an integer type")
+        if conn.dtype not in int_types | {np.dtype(object)}:
+            raise TypeError("Connectivity dtype needs to be an integer type or"
+                            "an object type for variable size cells")
         nnodes = NODES_PER_CELL[cell_type]
 
-        if nnodes not in (-1, conn.shape[1]):
+        if nnodes != -1 and nnodes != conn.shape[1]:
             return False
     return True

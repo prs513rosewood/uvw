@@ -8,6 +8,10 @@ and this project adheres to [PEP
 
 ## Unreleased
 
+### Fixed
+
+- Bug that prevented using variable size cells in `UnstructuredGrid`
+
 ## v0.4.0 -- 2021-05-04
 
 ### Added
