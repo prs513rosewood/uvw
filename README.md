@@ -238,6 +238,16 @@ Note that raw binary data, while more space efficient and supported by VTK,
 is not valid XML, and therefore not supported by UVW, which uses minidom for XML
 writing.
 
+### PyEVTK high-level API implementation
+
+To facilitate transition from
+[PyEVTK](https://github.com/pyscience-projects/pyevtk), UVW implements a part of
+its API, without imposing restrictions on data (such as the number of components
+per array) and allowing data compression. Simply replace `import pyevtk.hl` by
+`import uvw.dropin.hl`. To enable compression, provide `compression=True` to any
+of the functions in `uvw.dropin.hl`. *Note*: the drop-in is not automatically
+tested, do not hesitate to report problems.
+
 ### Planned developments
 
 Here is a list of future developments:

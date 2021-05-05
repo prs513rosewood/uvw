@@ -8,6 +8,12 @@ and this project adheres to [PEP
 
 ## Unreleased
 
+### Added
+
+- Drop-in replacement for `pyevtk.hl` that is less restrictive and more
+  feature-rich than the original (e.g. arbitrary number of components in data
+  and data compression).
+
 ### Fixed
 
 - Bug that prevented using variable size cells in `UnstructuredGrid`

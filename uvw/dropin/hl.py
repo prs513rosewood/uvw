@@ -5,6 +5,8 @@ This package is meant as a drop-in replacement for high-level functions of
 PyEVTK. However, it does not reproduce exactly the behavior of PyEVTK, most
 notably:
 
+- uvw.Writer keyword arguments (such as compression=True) can be passed to
+  the functions
 - Data fields with any number of components are accepted. In PyEVTK, data
   fields have to be either scalar or 3D by specifying a tuple of 3 Numpy
   arrays. This is inconvenient and inefficient. UVW's native DataArray object
@@ -82,12 +84,13 @@ def _add_data(cellData, pointData, fieldData, fh, dims=range(3)):
 
 
 def imageToVTK(
-    path: str,
-    origin: ts.Tuple[float, float, float] = (0.0, 0.0, 0.0),
-    spacing: ts.Tuple[float, float, float] = (1.0, 1.0, 1.0),
-    cellData: DataType = None,
-    pointData: DataType = None,
-    fieldData: DataType = None,
+        path: str,
+        origin: ts.Tuple[float, float, float] = (0.0, 0.0, 0.0),
+        spacing: ts.Tuple[float, float, float] = (1.0, 1.0, 1.0),
+        cellData: DataType = None,
+        pointData: DataType = None,
+        fieldData: DataType = None,
+        **kwargs
 ) -> str:
     """
     Write data to an ImageData file
@@ -98,6 +101,7 @@ def imageToVTK(
     :param cellData: dict of data defined on cells
     :param pointData: dict of data defined on points
     :param fieldData: dict of data with arbitrary support
+    :param **kwargs: passed on to uvw.Writer (e.g. compression=True)
     :returns: full path of created file
 
     Notes:
@@ -128,7 +132,7 @@ def imageToVTK(
     ranges = [(o, o + n * s) for o, n, s in zip(origin, shape, spacing)]
     filename = path + '.vti'
 
-    with vtk.ImageData(filename, ranges, shape) as fh:
+    with vtk.ImageData(filename, ranges, shape, **kwargs) as fh:
         _add_data(cellData, pointData, fieldData, fh)
     return filename
 
@@ -140,7 +144,8 @@ def gridToVTK(
         z: np.ndarray,
         cellData: DataType = None,
         pointData: DataType = None,
-        fieldData: DataType = None
+        fieldData: DataType = None,
+        **kwargs
 ) -> str:
     """
     Write data to either a RectilinearGrid or StructuredGrid file
@@ -152,6 +157,7 @@ def gridToVTK(
     :param cellData: dict of data defined on cells
     :param pointData: dict of data defined on points
     :param fieldData: dict of data with arbitrary support
+    :param **kwargs: passed on to uvw.Writer (e.g. compression=True)
     :returns: full path of created file
 
     Notes:
@@ -172,7 +178,7 @@ def gridToVTK(
         shape = [x.shape[0], y.shape[0], z.shape[0]]
         file_args = (filename, points, shape)
 
-    with File(*file_args) as fh:
+    with File(*file_args, **kwargs) as fh:
         _add_data(cellData, pointData, fieldData, fh)
     return file_args[0]
 
@@ -183,7 +189,8 @@ def pointsToVTK(
         y: np.ndarray,
         z: np.ndarray,
         data: DataType = None,
-        fieldData: DataType = None
+        fieldData: DataType = None,
+        **kwargs
 ) -> str:
     """
     Write point set to UnstructuredGrid file
@@ -194,6 +201,7 @@ def pointsToVTK(
     :param z: 1d array of z coordinates
     :param data: dict of data defined on points
     :param fieldData: dict of data with arbitrary support
+    :param **kwargs: passed on to uvw.Writer (e.g. compression=True)
     :returns: full path of created file
     """
     filename = path + '.vts'
@@ -201,7 +209,7 @@ def pointsToVTK(
     coords = np.vstack([x.ravel(), y.ravel(), z.ravel()]).T
     connectivity = {1: np.arange(coords.shape[0], dtype=np.int)}
 
-    with vtk.UnstructuredGrid(filename, coords, connectivity) as fh:
+    with vtk.UnstructuredGrid(filename, coords, connectivity, **kwargs) as fh:
         _add_data(None, data, fieldData, fh, [0])
     return filename
 
@@ -213,7 +221,8 @@ def linesToVTK(
         z: np.ndarray,
         cellData: DataType = None,
         pointData: DataType = None,
-        fieldData: DataType = None
+        fieldData: DataType = None,
+        **kwargs
 ) -> str:
     """
     Write segment set to an UnstructuredGrid file
@@ -225,6 +234,7 @@ def linesToVTK(
     :param cellData: dict of data defined on cells
     :param pointData: dict of data defined on points
     :param fieldData: dict of data with arbitrary support
+    :param **kwargs: passed on to uvw.Writer (e.g. compression=True)
     :returns: full path of created file
 
     Notes:
@@ -244,7 +254,7 @@ def linesToVTK(
     }
 
     filename = path + '.vtu'
-    with vtk.UnstructuredGrid(filename, points, connectivity) as fh:
+    with vtk.UnstructuredGrid(filename, points, connectivity, **kwargs) as fh:
         _add_data(cellData, pointData, fieldData, fh)
     return filename
 
@@ -257,7 +267,8 @@ def polyLinesToVTK(
         pointsPerLine: np.ndarray,
         cellData: DataType = None,
         pointData: DataType = None,
-        fieldData: DataType = None
+        fieldData: DataType = None,
+        **kwargs
 ) -> str:
     """
     Write segmented lines set to an UnstructuredGrid file
@@ -270,6 +281,7 @@ def polyLinesToVTK(
     :param cellData: dict of data defined on cells
     :param pointData: dict of data defined on points
     :param fieldData: dict of data with arbitrary support
+    :param **kwargs: passed on to uvw.Writer (e.g. compression=True)
     :returns: full path of created file
     """
     points = np.vstack([x.ravel(), y.ravel(), z.ravel()]).T
@@ -280,7 +292,7 @@ def polyLinesToVTK(
     ])}
 
     filename = path + '.vtu'
-    with vtk.UnstructuredGrid(filename, points, connectivity) as fh:
+    with vtk.UnstructuredGrid(filename, points, connectivity, **kwargs) as fh:
         _add_data(cellData, pointData, fieldData, fh)
     return filename
 
@@ -296,6 +308,7 @@ def unstructuredGridToVTK(
         cellData: DataType = None,
         pointData: DataType = None,
         fieldData: DataType = None,
+        **kwargs
 ) -> str:
     """
     Write UnstructuredGrid file
@@ -311,22 +324,24 @@ def unstructuredGridToVTK(
     :param cellData: dict of data defined on cells
     :param pointData: dict of data defined on points
     :param fieldData: dict of data with arbitrary support
+    :param **kwargs: passed on to uvw.Writer (e.g. compression=True)
     :returns: full path of created file
     """
     raise NotImplementedError()
 
 
 def cylinderToVTK(
-    path: str,
-    x0: float,
-    y0: float,
-    z0: float,
-    z1: float,
-    radius: float,
-    nlayers: int,
-    npilars: int = 16,
-    cellData: DataType = None,
-    pointData: DataType = None,
-    fieldData: DataType = None,
+        path: str,
+        x0: float,
+        y0: float,
+        z0: float,
+        z1: float,
+        radius: float,
+        nlayers: int,
+        npilars: int = 16,
+        cellData: DataType = None,
+        pointData: DataType = None,
+        fieldData: DataType = None,
+        **kwargs
 ):
     raise NotImplementedError()
