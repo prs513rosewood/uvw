@@ -11,6 +11,7 @@ from uvw import (
     UnstructuredGrid,
 )
 
+from uvw.vtk_files import WriteManager
 from uvw.unstructured import check_connectivity, CellType
 from uvw.parallel import PRectilinearGrid
 
@@ -75,6 +76,10 @@ def test_context_manger():
     x = np.array([1, 2])
     with RectilinearGrid('', x):
         raise Exception('Yo')
+
+    with pytest.raises(NotImplementedError):
+        with WriteManager():
+            pass
 
 
 def test_check_connectivity():

@@ -53,7 +53,7 @@ def field_data(request, dtype_fixture):
     return coords, r, e_r, f, order
 
 
-@pytest.fixture(params=[False, True], ids=['raw', 'compressed'])
+@pytest.fixture(params=[False, True, 1], ids=['raw', 'compressed', 'fast'])
 def compression_fixture(request):
     return request
 
