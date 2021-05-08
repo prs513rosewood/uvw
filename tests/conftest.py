@@ -29,7 +29,7 @@ def field_data(request, dtype_fixture):
         coords = [x]
         r = np.abs(x).astype(float_dtype)
 
-    if dim == 2:
+    elif dim == 2:
         x = np.linspace(0, 1, N*2, dtype=float_dtype)
         y = np.linspace(0, 1, N+2, dtype=float_dtype)
         coords = [x, y]
@@ -37,7 +37,7 @@ def field_data(request, dtype_fixture):
         xx, yy = np.meshgrid(x, y, indexing='ij', sparse=True)
         r = np.sqrt(xx**2 + yy**2).astype(float_dtype)
 
-    if dim == 3:
+    elif dim == 3:
         x = np.linspace(0, 1, N*2, dtype=float_dtype)
         y = np.linspace(0, 1, N+2, dtype=float_dtype)
         z = np.linspace(0, 1, N, dtype=float_dtype)
@@ -45,6 +45,9 @@ def field_data(request, dtype_fixture):
 
         xx, yy, zz = np.meshgrid(x, y, z, indexing='ij', sparse=True)
         r = np.sqrt(xx**2 + yy**2 + zz**2).astype(float_dtype)
+
+    else:
+        raise ValueError("Who's playing with the fixture parameters?!")
 
     e_r = np.zeros([s - 1 for s in r.shape] + [3, 3], dtype=float_dtype)
     e_r[..., :, :] = np.array([[0, 1, 0], [1, 0, 0], [0, 1, 1]])

@@ -1,11 +1,26 @@
-"""
-Module with classes corresponding to VTK file types.
+"""Module with classes corresponding to VTK file types.
+
+Currently, the following types are implemented:
+- ImageData
+- RectilinearGrid
+- StructuredGrid
+- UnstructuredGrid
+
+The ParaViewData file format, although not part of VTK, is also available.
+
+All instances of classes in this file are context managers and can be used in
+the idiomatic:
+
+  with RectilinearGrid(...) as file:
+      file.addPointData(...)
+
 """
 
 __copyright__ = "Copyright © 2018-2021 Lucas Frérot"
 __license__ = "SPDX-License-Identifier: MIT"
 
 import functools
+import typing as ts
 import numpy as np
 
 from . import writer
@@ -61,9 +76,17 @@ class WriteManager:
 
 
 class VTKFile(WriteManager):
-    """Generic VTK file"""
+    """Generic VTK file
 
-    def __init__(self, filename, filetype, **kwargs):
+    Base class of all VTK-formated files. Sets up the common XML tree with
+    PointData and CellData. Also supplies the functions to add point, cell and
+    field data.
+
+    """
+
+    FileDescriptor = writer.Writer.FileDescriptor
+
+    def __init__(self, filename: FileDescriptor, filetype: str, **kwargs):
         """
         Create a generic VTK file
 
@@ -85,7 +108,7 @@ class VTKFile(WriteManager):
             'FieldData', self.writer.data_node
         )
 
-    def addPointData(self, data_array, vtk_format='binary'):
+    def addPointData(self, data_array: DataArray, vtk_format: str = 'binary'):
         """
         Add a DataArray instance to the PointData section of the file
 
@@ -95,12 +118,12 @@ class VTKFile(WriteManager):
             - ``'binary'``: data is written in base64 (with possible
             compression) in-place
             - ``'append'``: data is written in base64 (with possible
-            compression) in the ``AppendData`` section
+            compression) in the ``AppendData`` section of the file
         """
         self.point_data.registerDataArray(data_array, vtk_format)
         return self
 
-    def addCellData(self, data_array, vtk_format='binary'):
+    def addCellData(self, data_array: DataArray, vtk_format: str = 'binary'):
         """
         Add a DataArray instance to the PointData section of the file
 
@@ -109,7 +132,7 @@ class VTKFile(WriteManager):
         self.cell_data.registerDataArray(data_array, vtk_format)
         return self
 
-    def addFieldData(self, data_array, vtk_format='binary'):
+    def addFieldData(self, data_array: DataArray, vtk_format: str = 'binary'):
         """
         Add a DataArray instance to the FieldData section of the file.
 
@@ -132,7 +155,11 @@ class VTKFile(WriteManager):
 class ImageData(VTKFile):
     """VTK Image data (coordinates given by a range and constant spacing)"""
 
-    def __init__(self, filename, ranges, points, offsets=None, **kwargs):
+    def __init__(self,
+                 filename: VTKFile.FileDescriptor,
+                 ranges: ts.List[ts.Tuple[float, float]],
+                 points: ts.List[int],
+                 offsets: ts.List[int] = None, **kwargs):
         """
         Init an ImageData file (regular orthogonal grid)
 
@@ -149,9 +176,8 @@ class ImageData(VTKFile):
             offsets = [0] * len(points)
 
         # Filling in missing coordinates
-        for _ in range(len(points), 3):
-            points.append(1)
-            offsets.append(0)
+        points += [1] * max(3 - len(points), 0)
+        offsets += [0] * max(3 - len(offsets), 0)
 
         # Setting extents, spacing and origin
         self.extent = _fold_extent([x - 1 for x in points],
@@ -171,9 +197,12 @@ class ImageData(VTKFile):
 
 
 class RectilinearGrid(VTKFile):
-    """VTK Rectilinear grid (coordinates are given by 3 seperate ranges)"""
+    """VTK Rectilinear grid (coordinates are given by 3 seperate arrays)"""
 
-    def __init__(self, filename, coordinates, offsets=None, **kwargs):
+    def __init__(self,
+                 filename: VTKFile.FileDescriptor,
+                 coordinates: ts.Union[ts.Iterable[np.ndarray], np.ndarray],
+                 offsets: ts.List[int] = None, **kwargs):
         """
         Init an RectilinearGrid file (irregular orthogonal grid)
 
@@ -187,10 +216,8 @@ class RectilinearGrid(VTKFile):
             coordinates = [coordinates]
 
         self.coordinates = list(coordinates)
-
         # Filling in missing coordinates
-        for _ in range(len(self.coordinates), 3):
-            self.coordinates.append(np.array([0.]))
+        self.coordinates += [np.array([0.])] * max(0, 3 - len(self.coordinates))
 
         # Setting data extent
         extent = []
@@ -224,7 +251,10 @@ class RectilinearGrid(VTKFile):
 class StructuredGrid(VTKFile):
     """VTK Structured grid (coordinates given by a single array of points)"""
 
-    def __init__(self, filename, points, shape, **kwargs):
+    def __init__(self,
+                 filename: VTKFile.FileDescriptor,
+                 points: np.ndarray,
+                 shape: ts.List[int], **kwargs):
         """
         Init a StructuredGrid file (mesh of ordered quadrangle/hexahedron
         cells)
@@ -242,8 +272,7 @@ class StructuredGrid(VTKFile):
         points = _make_3darray(points)
 
         extent = [n - 1 for n in shape]
-        for _ in range(len(extent), 3):
-            extent.append(0)
+        extent += [0] * max(3 - len(extent), 0)
 
         extent = functools.reduce(lambda x, y: x + f"0 {y} ", extent, "")
         self.writer.setDataNodeAttributes({
@@ -261,9 +290,12 @@ class StructuredGrid(VTKFile):
 
 
 class UnstructuredGrid(VTKFile):
-    "VTKUnstructuredGrid Data (data on nodes + connectivity)"
+    "VTK Unstructured grid (data on nodes + connectivity)"
 
-    def __init__(self, filename, nodes, connectivity, **kwargs):
+    def __init__(self,
+                 filename: VTKFile.FileDescriptor,
+                 nodes: np.ndarray,
+                 connectivity: ts.Mapping[int, np.ndarray], **kwargs):
         """
         Init an UnstructuredGrid file (mesh with connectivity)
 
@@ -351,7 +383,7 @@ class ParaViewData(WriteManager):
     See: https://www.paraview.org/Wiki/ParaView/Data_formats#PVD_File_Format
     """
 
-    def __init__(self, filename, **kwargs):
+    def __init__(self, filename: str, **kwargs):
         """
         Initialize a PVD file
 

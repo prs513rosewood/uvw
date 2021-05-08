@@ -152,6 +152,8 @@ class Component:
 class Writer:
     """Generic XML handler for VTK files"""
 
+    FileDescriptor = ts.Union[str, PathLike, io.TextIOBase, io.BufferedIOBase]
+
     def __init__(self, vtk_format: str,
                  compression: ts.Optional[ts.Union[bool, int]] = None,
                  vtk_version: str = '0.1',
@@ -232,8 +234,7 @@ class Writer:
         text = self.document.createTextNode(data_str)
         append_node.node.appendChild(text)
 
-    def write(self,
-              fd: ts.Union[str, PathLike, io.TextIOBase, io.BufferedIOBase]):
+    def write(self, fd: FileDescriptor):
         """Write to file descriptor"""
         if isinstance(fd, (str, PathLike)):
             with open(fd, 'wb') as fh:

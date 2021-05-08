@@ -35,7 +35,22 @@ DTYPE_TO_VTK = {
 
 
 class DataArray:
-    """Class holding information on ndarray"""
+    """Class holding information on array data
+
+    This class allows ndarrays with arbitrary shape, including the number of
+    components, to be used by the sub-classes of VTKFile. This is done by
+    supplying the set of axis of the array that represent data in physical
+    directions (e.g. x, y, z). This means that arrays defined on a {1,2,3}-d
+    grid with N number of components are natively handled without having to
+    reshape the array prior to writing the file.
+
+    The VTK XML format assumes arrays are stored in Fortran order. By default,
+    ndarrays are stored in C order, so a copy of the data may be necessary when
+    the object is created. DataArray objects can also be told that components
+    may be stored in C or Fortan order (e.g. if the data stored per point is a
+    matrix).
+
+    """
 
     def __init__(self,
                  data: ts.Sequence,
