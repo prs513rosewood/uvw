@@ -84,9 +84,9 @@ class VTKFile(WriteManager):
 
     """
 
-    FileDescriptor = writer.Writer.FileDescriptor
+    _FileDescriptor = writer.Writer.FileDescriptor
 
-    def __init__(self, filename: FileDescriptor, filetype: str, **kwargs):
+    def __init__(self, filename: _FileDescriptor, filetype: str, **kwargs):
         """
         Create a generic VTK file
 
@@ -156,7 +156,7 @@ class ImageData(VTKFile):
     """VTK Image data (coordinates given by a range and constant spacing)"""
 
     def __init__(self,
-                 filename: VTKFile.FileDescriptor,
+                 filename: VTKFile._FileDescriptor,
                  ranges: ts.List[ts.Tuple[float, float]],
                  points: ts.List[int],
                  offsets: ts.List[int] = None, **kwargs):
@@ -200,7 +200,7 @@ class RectilinearGrid(VTKFile):
     """VTK Rectilinear grid (coordinates are given by 3 seperate arrays)"""
 
     def __init__(self,
-                 filename: VTKFile.FileDescriptor,
+                 filename: VTKFile._FileDescriptor,
                  coordinates: ts.Union[ts.Iterable[np.ndarray], np.ndarray],
                  offsets: ts.List[int] = None, **kwargs):
         """
@@ -252,7 +252,7 @@ class StructuredGrid(VTKFile):
     """VTK Structured grid (coordinates given by a single array of points)"""
 
     def __init__(self,
-                 filename: VTKFile.FileDescriptor,
+                 filename: VTKFile._FileDescriptor,
                  points: np.ndarray,
                  shape: ts.List[int], **kwargs):
         """
@@ -293,7 +293,7 @@ class UnstructuredGrid(VTKFile):
     "VTK Unstructured grid (data on nodes + connectivity)"
 
     def __init__(self,
-                 filename: VTKFile.FileDescriptor,
+                 filename: VTKFile._FileDescriptor,
                  nodes: np.ndarray,
                  connectivity: ts.Mapping[int, np.ndarray], **kwargs):
         """
@@ -324,7 +324,7 @@ class UnstructuredGrid(VTKFile):
         })
 
         self.piece.register('Points').registerDataArray(
-            DataArray(nodes, [0], 'points'), vtk_format='ascii',
+            DataArray(nodes, [0], 'points'), vtk_format='append'
         )
 
         int32 = np.dtype('i4')
@@ -360,20 +360,17 @@ class UnstructuredGrid(VTKFile):
             offset += len(conn)
 
         # Register mesh description
-        cells_component.registerDataArray(
-            DataArray(flat_connectivity, [0], 'connectivity'),
-            vtk_format='append',
-        )
+        connectivity_data = {
+            "connectivity": flat_connectivity,
+            "offsets": offsets,
+            "types": types,
+        }
 
-        cells_component.registerDataArray(
-            DataArray(offsets, [0], 'offsets'),
-            vtk_format='append',
-        )
-
-        cells_component.registerDataArray(
-            DataArray(types, [0], 'types'),
-            vtk_format='append',
-        )
+        for label, array in connectivity_data.items():
+            cells_component.registerDataArray(
+                DataArray(array, [0], label),
+                vtk_format='append',
+            )
 
 
 class ParaViewData(WriteManager):
