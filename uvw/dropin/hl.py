@@ -367,8 +367,7 @@ def unstructuredGridToVTK(
         fieldData: DataType = None,
         **kwargs
 ) -> str:
-    """
-    Write UnstructuredGrid file
+    """Write UnstructuredGrid file
 
     :param path: path to file without extension
     :param x: 1d array of x coordinates
@@ -383,8 +382,41 @@ def unstructuredGridToVTK(
     :param fieldData: dict of data with arbitrary support
     :param **kwargs: passed on to uvw.Writer (e.g. compression=True)
     :returns: full path of created file
+
+    Note: this implementation does not use uvw.UnstructuredGrid because the
+    function expects connectivity data in a format that uvw.UnstructuredGrid
+    already converts to.
+
     """
-    raise NotImplementedError()
+    filename = path + '.vtu'
+    points = np.vstack([x.ravel(), y.ravel(), z.ravel()]).T
+
+    ncells = cell_types.size
+    npoints = points.shape[0]
+
+    with vtk.VTKFile(filename, 'UnstructuredGrid', **kwargs) as fh:
+        fh.piece.settAttributes({
+            'NumberOfPoints': str(npoints),
+            'NumberOfCells': str(ncells),
+        })
+
+        fh.piece.register('Points').registerDataArray(
+            DataArray(points, [0], 'points'),
+        )
+
+        cells_component = fh.register('Cells')
+        connectivity_data = {
+            "connectivity": connectivity,
+            "offsets": offsets,
+            "types": cell_types,
+        }
+
+        for label, array in connectivity_data.items():
+            cells_component.registerDataArray(
+                DataArray(array, [0], label),
+            )
+
+        _add_data(cellData, pointData, fieldData, fh)
 
 
 def cylinderToVTK(
