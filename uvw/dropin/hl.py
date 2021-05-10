@@ -136,6 +136,68 @@ def imageToVTK(
     return filename
 
 
+def rectilinearToVTK(
+        path: str,
+        x: np.ndarray,
+        y: np.ndarray,
+        z: np.ndarray,
+        cellData: DataType = None,
+        pointData: DataType = None,
+        fieldData: DataType = None,
+        **kwargs
+) -> str:
+    """Write data to a RectilinearGrid
+
+    :param path: path to file without extension
+    :param x: 1d array of x coordinates
+    :param y: 1d array of y coordinates
+    :param z: 1d array of z coordinates
+    :param cellData: dict of data defined on cells
+    :param pointData: dict of data defined on points
+    :param fieldData: dict of data with arbitrary support
+    :param **kwargs: passed on to uvw.Writer (e.g. compression=True)
+    :returns: full path of created file
+
+    """
+
+    with vtk.RectilinearGrid(filename, (x, y, z), **kwargs) as fh:
+        _add_data(cellData, pointData, fieldData, fh)
+    return filename
+
+
+def structuredToVTK(
+        path: str,
+        x: np.ndarray,
+        y: np.ndarray,
+        z: np.ndarray,
+        cellData: DataType = None,
+        pointData: DataType = None,
+        fieldData: DataType = None,
+        **kwargs
+) -> str:
+    """Write data to a RectilinearGrid
+
+    :param path: path to file without extension
+    :param x: 3d array of x coordinates
+    :param y: 3d array of y coordinates
+    :param z: 3d array of z coordinates
+    :param cellData: dict of data defined on cells
+    :param pointData: dict of data defined on points
+    :param fieldData: dict of data with arbitrary support
+    :param **kwargs: passed on to uvw.Writer (e.g. compression=True)
+    :returns: full path of created file
+
+    """
+
+    filename = path + '.vts'
+    points = np.vstack([x.ravel(), y.ravel(), z.ravel()]).T
+    shape = [x.shape[0], y.shape[0], z.shape[0]]
+
+    with vtk.StructuredGrid(filename, points, shape, **kwargs) as fh:
+        _add_data(cellData, pointData, fieldData, fh)
+    return return filename
+
+
 def gridToVTK(
         path: str,
         x: np.ndarray,
@@ -166,20 +228,16 @@ def gridToVTK(
       3D grid coordinates can be obtained with numpy.meshgrid
     """
 
-    if x.ndim == 1 and y.ndim == 1 and z.ndim == 1:
-        filename = path + '.vtr'
-        File = vtk.RectilinearGrid
-        file_args = (filename, (x, y, z))
-    elif x.ndim == 3 and y.ndim == 3 and z.ndim == 3:
-        filename = path + '.vts'
-        File = vtk.StructuredGrid
-        points = np.vstack([x.ravel(), y.ravel(), z.ravel()]).T
-        shape = [x.shape[0], y.shape[0], z.shape[0]]
-        file_args = (filename, points, shape)
+    dims = [x.ndim, y.ndim, z.ndim]
 
-    with File(*file_args, **kwargs) as fh:
-        _add_data(cellData, pointData, fieldData, fh)
-    return file_args[0]
+    if dims == [1] * 3:
+        return rectilinearToVTK(path, x, y, z,
+                                cellData, pointData, fieldData, **kwargs)
+    if dims == [3] * 3:
+        return structuredToVTK(path, x, y, z,
+                               cellData, pointData, fieldData, **kwargs)
+
+    raise ValueError(f"Wrong dimensions for x, y, z arrays: {dims}")
 
 
 def pointsToVTK(
