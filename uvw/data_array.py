@@ -6,7 +6,6 @@ __license__ = "SPDX-License-Identifier: MIT"
 import functools
 import typing as ts
 import numpy as np
-import numpy.typing as npt
 
 DTYPE_TO_VTK = {
     np.dtype('<f4'): 'Float32',
@@ -51,7 +50,7 @@ class DataArray:
     """
 
     def __init__(self,
-                 data: npt.ArrayLike,
+                 data: ts.Sequence,
                  spatial_axes: ts.Iterable[int],
                  name: str = '',
                  components_order: str = 'C'):
