@@ -1,5 +1,5 @@
 """
-Compatibility package with the high-level API of PyEVTK
+Compatibility package with the high-level API of PyEVTK.
 
 This package is meant as a drop-in replacement for high-level functions of
 PyEVTK. However, it does not reproduce exactly the behavior of PyEVTK, most
@@ -93,7 +93,7 @@ def imageToVTK(
         **kwargs
 ) -> str:
     """
-    Write data to an ImageData file
+    Write data to an ImageData file.
 
     :param path: path to file without extension
     :param origin: 3-tuple giving the domain origin
@@ -109,7 +109,6 @@ def imageToVTK(
     - unlike PyEVTK arrays do not have to have the same dimension in each
       direction
     """
-
     if cellData is None and pointData is None:
         raise ValueError("Cannot infer image size if cell "
                          "and point data are absent")
@@ -146,7 +145,7 @@ def rectilinearToVTK(
         fieldData: DataType = None,
         **kwargs
 ) -> str:
-    """Write data to a RectilinearGrid
+    """Write data to a RectilinearGrid.
 
     :param path: path to file without extension
     :param x: 1d array of x coordinates
@@ -159,7 +158,7 @@ def rectilinearToVTK(
     :returns: full path of created file
 
     """
-
+    filename = path + '.vtr'
     with vtk.RectilinearGrid(filename, (x, y, z), **kwargs) as fh:
         _add_data(cellData, pointData, fieldData, fh)
     return filename
@@ -175,7 +174,7 @@ def structuredToVTK(
         fieldData: DataType = None,
         **kwargs
 ) -> str:
-    """Write data to a RectilinearGrid
+    """Write data to a RectilinearGrid.
 
     :param path: path to file without extension
     :param x: 3d array of x coordinates
@@ -188,14 +187,13 @@ def structuredToVTK(
     :returns: full path of created file
 
     """
-
     filename = path + '.vts'
     points = np.vstack([x.ravel(), y.ravel(), z.ravel()]).T
     shape = [x.shape[0], y.shape[0], z.shape[0]]
 
     with vtk.StructuredGrid(filename, points, shape, **kwargs) as fh:
         _add_data(cellData, pointData, fieldData, fh)
-    return return filename
+    return filename
 
 
 def gridToVTK(
@@ -209,7 +207,7 @@ def gridToVTK(
         **kwargs
 ) -> str:
     """
-    Write data to either a RectilinearGrid or StructuredGrid file
+    Write data to either a RectilinearGrid or StructuredGrid file.
 
     :param path: path to file without extension
     :param x: {1,3}-d array of x coordinates
@@ -227,7 +225,6 @@ def gridToVTK(
       - 3D -> StructuredGrid
       3D grid coordinates can be obtained with numpy.meshgrid
     """
-
     dims = [x.ndim, y.ndim, z.ndim]
 
     if dims == [1] * 3:
@@ -250,7 +247,7 @@ def pointsToVTK(
         **kwargs
 ) -> str:
     """
-    Write point set to UnstructuredGrid file
+    Write point set to UnstructuredGrid file.
 
     :param path: path to file without extension
     :param x: 1d array of x coordinates
@@ -282,7 +279,7 @@ def linesToVTK(
         **kwargs
 ) -> str:
     """
-    Write segment set to an UnstructuredGrid file
+    Write segment set to an UnstructuredGrid file.
 
     :param path: path to file without extension
     :param x: {1,3}-d array of x coordinates
@@ -328,7 +325,7 @@ def polyLinesToVTK(
         **kwargs
 ) -> str:
     """
-    Write segmented lines set to an UnstructuredGrid file
+    Write segmented lines set to an UnstructuredGrid file.
 
     :param path: path to file without extension
     :param x: {1,3}-d array of x coordinates
@@ -367,7 +364,7 @@ def unstructuredGridToVTK(
         fieldData: DataType = None,
         **kwargs
 ) -> str:
-    """Write UnstructuredGrid file
+    """Write UnstructuredGrid file.
 
     :param path: path to file without extension
     :param x: 1d array of x coordinates
@@ -433,4 +430,5 @@ def cylinderToVTK(
         fieldData: DataType = None,
         **kwargs
 ):
+    """Not yet implemented."""
     raise NotImplementedError()

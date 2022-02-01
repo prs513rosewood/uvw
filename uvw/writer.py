@@ -23,7 +23,7 @@ from collections.abc import Mapping
 
 
 def setAttributes(node: dom.Node, attributes: ts.Mapping[str, ts.Any]):
-    """Set attributes of a node"""
+    """Set attributes of a node."""
     for item in attributes.items():
         node.setAttribute(*item)
 
@@ -62,7 +62,7 @@ def encodeArray(array: np.ndarray, level: int) -> str:
         return header.tobytes(), b"".join(compressed_data)
 
     def raw(array):
-        """Returns header and array data in bytes."""
+        """Return header and array data in bytes."""
         header_dtype = np.dtype(array.dtype.byteorder + 'u4')
         header = np.array([array.nbytes], dtype=header_dtype)
         return header.tobytes(), memoryview(array)
@@ -72,15 +72,17 @@ def encodeArray(array: np.ndarray, level: int) -> str:
 
 
 class Component:
-    """Generic component class capable of registering sub-components"""
+    """Generic component class capable of registering sub-components."""
 
     def __init__(self, name: str, parent_node: dom.Node, writer):
+        """Construct from name, parent node and writer object."""
         self.writer = writer
         self.document = writer.document
         self.node = self.document.createElement(name)
         parent_node.appendChild(self.node)
 
     def setAttributes(self, attributes: ts.Mapping[str, ts.Any]):
+        """Set the node attributes from dictionary."""
         setAttributes(self.node, attributes)
 
     def register(
@@ -88,7 +90,7 @@ class Component:
             name: str,
             attributes: ts.Optional[ts.Mapping[str, ts.Any]] = None
     ) -> 'Component':
-        """Register a sub-component"""
+        """Register a sub-component."""
         if attributes is None:
             attributes = {}
 
@@ -136,7 +138,7 @@ class Component:
     def registerDataArray(self,
                           data_array: DataArray,
                           vtk_format: str = 'binary'):
-        """Register a DataArray object"""
+        """Register a DataArray object."""
         component = self._registerArrayComponent(data_array,
                                                  'DataArray',
                                                  vtk_format)
@@ -145,12 +147,12 @@ class Component:
     def registerPDataArray(self,
                            data_array: DataArray,
                            vtk_format: str = 'binary'):
-        """Register a DataArray object in p-file"""
+        """Register a DataArray object in p-file."""
         self._registerArrayComponent(data_array, 'PDataArray', vtk_format)
 
 
 class Writer:
-    """Generic XML handler for VTK files"""
+    """Generic XML handler for VTK files."""
 
     FileDescriptor = ts.Union[str, PathLike, io.TextIOBase, io.BufferedIOBase]
 
@@ -159,14 +161,13 @@ class Writer:
                  vtk_version: str = '0.1',
                  byte_order: str = 'LittleEndian'):
         """
-        Create an XML writer
+        Create an XML writer.
 
         :param vtk_format: format of VTK file
         :param compression: compression level (see zlib), True, False or None
         :param vtk_version: version number of VTK file
         :param byte_order: byte order of binary data
         """
-
         valid_orders = {"LittleEndian", "BigEndian"}
         if byte_order not in valid_orders:
             raise ValueError(
@@ -198,11 +199,11 @@ class Writer:
             self.root.setAttribute('compressor', 'vtkZLibDataCompressor')
 
     def setDataNodeAttributes(self, attributes: ts.Mapping[str, ts.Any]):
-        """Set attributes for the entire dataset"""
+        """Set attributes for the entire dataset."""
         setAttributes(self.data_node, attributes)
 
     def registerPiece(self, attributes: ts.Mapping[str, ts.Any] = {}):
-        """Register a piece element"""
+        """Register a piece element."""
         return self.registerComponent('Piece', self.data_node,
                                       attributes)
 
@@ -212,13 +213,13 @@ class Writer:
             parent: dom.Node,
             attributes: ts.Mapping[str, ts.Any] = {}
     ) -> Component:
-        """Register a Component to a parent Component with set attributes"""
+        """Register a Component to a parent Component with set attributes."""
         comp = Component(name, parent, self)
         setAttributes(comp.node, attributes)
         return comp
 
     def registerAppend(self):
-        """Register AppendedData node (should only be called once)"""
+        """Register AppendedData node (should only be called once)."""
         append_node = Component('AppendedData', self.root, self)
         append_node.setAttributes({'format': 'base64'})
         self.root.appendChild(append_node.node)
@@ -235,7 +236,7 @@ class Writer:
         append_node.node.appendChild(text)
 
     def write(self, fd: FileDescriptor):
-        """Write to file descriptor"""
+        """Write to file descriptor."""
         if isinstance(fd, (str, PathLike)):
             with open(fd, 'wb') as fh:
                 self.write(fh)
@@ -247,5 +248,5 @@ class Writer:
             raise TypeError(f"Expected a path or file descriptor, got {fd}")
 
     def __str__(self) -> str:
-        """Print XML to string"""
+        """Print XML to string."""
         return self.document.toprettyxml()

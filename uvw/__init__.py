@@ -1,4 +1,5 @@
-"""
+"""UVW: Universal VTK Writer.
+
 UVW is a small utility library to write XML VTK files from data contained in
 Numpy arrays. It handles fully-fledged `ndarrays` defined over {1, 2, 3}-d
 domains, with arbitrary number of components. There are no constraints on the
@@ -15,6 +16,8 @@ __author__ = "Lucas Frérot"
 __maintainer__ = __author__
 __copyright__ = "Copyright © 2018-2021 Lucas Frérot"
 __license__ = "SPDX-License-Identifier: MIT"
+
+# flake8: noqa
 
 from .vtk_files import (
     RectilinearGrid,

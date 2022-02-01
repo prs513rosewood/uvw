@@ -1,8 +1,6 @@
-"""
-Module with MPI-empowered classes for parallel VTK file types.
-"""
+"""Module with MPI-empowered classes for parallel VTK file types."""
 
-__copyright__ = "Copyright © 2018-2021 Lucas Frérot"
+__copyright__ = "Copyright © 2018-2022 Lucas Frérot"
 __license__ = "SPDX-License-Identifier: MIT"
 
 import functools
@@ -21,18 +19,18 @@ MASTER_RANK = 0
 
 
 def _check_file_descriptor(fd):
-    "Check path argument"
+    """Check path argument."""
     if not isinstance(fd, (str, PathLike)):
         raise TypeError(f'Expected path, got {fd}')
 
 
 def _str_convert(ex):
-    "Convert list of string extents to list of tuples gathering mins and maxs"
+    """Convert list of string extents to list of tuples w/ mins and maxs."""
     return list(zip(*((int(x) for x in s.split()) for s in ex)))
 
 
 def _min_max_reduce(extents):
-    "Reduce local extents to global extent by looking for mins and maxs"
+    """Reduce local extents to global extent by looking for mins and maxs."""
     mins = map(min, extents[0::2])
     maxs = map(max, extents[1::2])
 
@@ -44,11 +42,11 @@ def _min_max_reduce(extents):
 
 
 class PVTKFile(vtk_files.VTKFile):
-    "Generic parallel VTK file"
+    """Generic parallel VTK file."""
 
     def __init__(self, filename, pfiletype, **kwargs):
         """
-        Create a generic VTK file
+        Create a generic VTK file.
 
         :param filename: name of file (cannot be file handle)
         :param filetype: VTK format of file
@@ -77,34 +75,38 @@ class PVTKFile(vtk_files.VTKFile):
         ]
 
     def addPointData(self, array, *args, **kwargs):
+        """Add point data."""
         if self.rank == MASTER_RANK:
             self.ppoint_data.registerPDataArray(array, *args, **kwargs)
         return vtk_files.VTKFile.addPointData(self, array, *args, **kwargs)
 
     def addCellData(self, array, *args, **kwargs):
+        """Add cell data."""
         if self.rank == MASTER_RANK:
             self.pcell_data.registerPDataArray(array, *args, **kwargs)
         return vtk_files.VTKFile.addCellData(self, array, *args, **kwargs)
 
     def addFieldData(self, array, *args, **kwargs):
+        """Add field data."""
         if self.rank == MASTER_RANK:
             self.pfield_data.registerPDataArray(array, *args, **kwargs)
         return vtk_files.VTKFile.addFieldData(self, array, *args, **kwargs)
 
     def write(self):
+        """Write file."""
         vtk_files.VTKFile.write(self)
         if self.rank == MASTER_RANK:
             self.pwriter.write(self.pfilename)
 
 
 class PImageData(PVTKFile, vtk_files.ImageData):
-    "Image data parallel writer"
+    """Image data parallel writer."""
 
     parent = vtk_files.ImageData
 
     def __init__(self, filename, ranges, points, offsets, **kwargs):
         """
-        Init an ImageData file (regular orthogonal grid)
+        Init an ImageData file (regular orthogonal grid).
 
         :param filename: name of file or file handle
         :param ranges: list of pairs for coordinate ranges
@@ -157,13 +159,13 @@ class PImageData(PVTKFile, vtk_files.ImageData):
 
 
 class PRectilinearGrid(PVTKFile, vtk_files.RectilinearGrid):
-    "Rectilinear grid parallel writer"
+    """Rectilinear grid parallel writer."""
 
     parent = vtk_files.RectilinearGrid
 
     def __init__(self, filename, coordinates, offsets, **kwargs):
         """
-        Init the parallel counterpart of a RectilinearGrid file
+        Init the parallel counterpart of a RectilinearGrid file.
 
         :param filename: name of file or file handle
         :param coordinates: list of coordinate arrays for this rank

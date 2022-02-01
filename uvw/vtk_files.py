@@ -29,7 +29,7 @@ from .unstructured import CellType, check_connectivity
 
 
 def _make_3darray(points):
-    "Complete missing coordinates to get 3d points"
+    """Complete missing coordinates to get 3d points."""
     if points.shape[1] == 3:
         return points
 
@@ -60,15 +60,18 @@ def _fold_extent(extent, offsets, dimension):
 
 
 class WriteManager:
-    "Context manager that writes on exit"
+    """Context manager that writes on exit."""
 
     def write(self):
+        """Write file."""
         raise NotImplementedError()
 
     def __enter__(self):
+        """Enter context."""
         return self
 
     def __exit__(self, err_type, *_):
+        """Exit context and handle errors."""
         if err_type is None:
             # Only write if no error
             self.write()
@@ -76,7 +79,7 @@ class WriteManager:
 
 
 class VTKFile(WriteManager):
-    """Generic VTK file
+    """Generic VTK file.
 
     Base class of all VTK-formated files. Sets up the common XML tree with
     PointData and CellData. Also supplies the functions to add point, cell and
@@ -88,7 +91,7 @@ class VTKFile(WriteManager):
 
     def __init__(self, filename: _FileDescriptor, filetype: str, **kwargs):
         """
-        Create a generic VTK file
+        Create a generic VTK file.
 
         :param filename: name of file or file handle
         :param filetype: VTK format of file
@@ -110,7 +113,7 @@ class VTKFile(WriteManager):
 
     def addPointData(self, data_array: DataArray, vtk_format: str = 'binary'):
         """
-        Add a DataArray instance to the PointData section of the file
+        Add a DataArray instance to the PointData section of the file.
 
         :param data_array: DataArray instance
         :param vtk_format: data format. Can be:
@@ -125,7 +128,7 @@ class VTKFile(WriteManager):
 
     def addCellData(self, data_array: DataArray, vtk_format: str = 'binary'):
         """
-        Add a DataArray instance to the PointData section of the file
+        Add a DataArray instance to the PointData section of the file.
 
         Arguments are identical to `addPointData`.
         """
@@ -145,15 +148,13 @@ class VTKFile(WriteManager):
         return self
 
     def write(self):
-        """
-        Write XML to file.
-        """
+        """Write XML to file."""
         self.writer.registerAppend()
         self.writer.write(self.filename)
 
 
 class ImageData(VTKFile):
-    """VTK Image data (coordinates given by a range and constant spacing)"""
+    """VTK Image data (coordinates given by a range and constant spacing)."""
 
     def __init__(self,
                  filename: VTKFile._FileDescriptor,
@@ -161,7 +162,7 @@ class ImageData(VTKFile):
                  points: ts.List[int],
                  offsets: ts.List[int] = None, **kwargs):
         """
-        Init an ImageData file (regular orthogonal grid)
+        Init an ImageData file (regular orthogonal grid).
 
         :param filename: name of file or file handle
         :param ranges: list of pairs for coordinate ranges
@@ -197,14 +198,14 @@ class ImageData(VTKFile):
 
 
 class RectilinearGrid(VTKFile):
-    """VTK Rectilinear grid (coordinates are given by 3 seperate arrays)"""
+    """VTK Rectilinear grid (coordinates are given by 3 seperate arrays)."""
 
     def __init__(self,
                  filename: VTKFile._FileDescriptor,
                  coordinates: ts.Union[ts.Iterable[np.ndarray], np.ndarray],
                  offsets: ts.List[int] = None, **kwargs):
         """
-        Init an RectilinearGrid file (irregular orthogonal grid)
+        Init an RectilinearGrid file (irregular orthogonal grid).
 
         :param filename: name of file or file handle
         :param coordinates: list of coordinates for each direction
@@ -217,7 +218,9 @@ class RectilinearGrid(VTKFile):
 
         self.coordinates = list(coordinates)
         # Filling in missing coordinates
-        self.coordinates += [np.array([0.])] * max(0, 3 - len(self.coordinates))
+        self.coordinates += (
+            [np.array([0.])] * max(0, 3 - len(self.coordinates))
+        )
 
         # Setting data extent
         extent = []
@@ -249,15 +252,14 @@ class RectilinearGrid(VTKFile):
 
 
 class StructuredGrid(VTKFile):
-    """VTK Structured grid (coordinates given by a single array of points)"""
+    """VTK Structured grid (coordinates given by a single array of points)."""
 
     def __init__(self,
                  filename: VTKFile._FileDescriptor,
                  points: np.ndarray,
                  shape: ts.List[int], **kwargs):
         """
-        Init a StructuredGrid file (mesh of ordered quadrangle/hexahedron
-        cells)
+        Init a StructuredGrid file (ordered quadrangle/hexahedron cells).
 
         :param filename: name of file or file handle
         :param points: 2D numpy array of point coordinates
@@ -290,14 +292,14 @@ class StructuredGrid(VTKFile):
 
 
 class UnstructuredGrid(VTKFile):
-    "VTK Unstructured grid (data on nodes + connectivity)"
+    """VTK Unstructured grid (data on nodes + connectivity)."""
 
     def __init__(self,
                  filename: VTKFile._FileDescriptor,
                  nodes: np.ndarray,
                  connectivity: ts.Mapping[int, np.ndarray], **kwargs):
         """
-        Init an UnstructuredGrid file (mesh with connectivity)
+        Init an UnstructuredGrid file (mesh with connectivity).
 
         :param filename: name of file or file handle
         :param nodes: 2D numpy array of node coordinates
@@ -382,7 +384,7 @@ class ParaViewData(WriteManager):
 
     def __init__(self, filename: str, **kwargs):
         """
-        Initialize a PVD file
+        Initialize a PVD file.
 
         PVD files contain references to other data files, and are convenient
         to represent time series, for example.
@@ -392,14 +394,13 @@ class ParaViewData(WriteManager):
 
     def addFile(self, file, timestep=0, group="", part=0):
         """
-        Add a file to the group
+        Add a file to the group.
 
         :param file: filename or VTKFile instance
         :param timestep: real-time value of file
         :param group: group to add the file to
         :param part: sub-part of the domain represented by file
         """
-
         if isinstance(file, VTKFile):
             file = file.filename
 
@@ -408,4 +409,5 @@ class ParaViewData(WriteManager):
         ))
 
     def write(self):
+        """Write file."""
         self.writer.write(self.filename)

@@ -1,14 +1,12 @@
-"""
-Module defining class (`DataArray`) used to represent Numpy arrays in XML
-model.
-"""
+"""Defining class (`DataArray`) used to represent Numpy arrays in XML model."""
 
-__copyright__ = "Copyright © 2018-2021 Lucas Frérot"
+__copyright__ = "Copyright © 2018-2022 Lucas Frérot"
 __license__ = "SPDX-License-Identifier: MIT"
 
 import functools
 import typing as ts
 import numpy as np
+import numpy.typing as npt
 
 DTYPE_TO_VTK = {
     np.dtype('<f4'): 'Float32',
@@ -35,7 +33,7 @@ DTYPE_TO_VTK = {
 
 
 class DataArray:
-    """Class holding information on array data
+    """Class holding information on array data.
 
     This class allows ndarrays with arbitrary shape, including the number of
     components, to be used by the sub-classes of VTKFile. This is done by
@@ -53,12 +51,12 @@ class DataArray:
     """
 
     def __init__(self,
-                 data: ts.Sequence,
+                 data: npt.ArrayLike,
                  spatial_axes: ts.Iterable[int],
                  name: str = '',
                  components_order: str = 'C'):
         """
-        Data array constructor
+        Construct a data array.
 
         :param data: the numpy array containing the data (possibly a view)
         :param spatial_axes: a sequence of ints that indicate which axes of the
@@ -108,4 +106,5 @@ class DataArray:
         self.format_str = '%d' if 'Int' in data_type else '%.18e'
 
     def __str__(self) -> str:  # pragma: no cover
+        """Produce string representation."""
         return self.attributes.__str__()

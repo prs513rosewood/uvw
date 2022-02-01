@@ -1,8 +1,6 @@
-"""
-Module with class for cell types in vtkUnstructuredGrid
-"""
+"""Module with class for cell types in vtkUnstructuredGrid."""
 
-__copyright__ = "Copyright © 2018-2021 Lucas Frérot"
+__copyright__ = "Copyright © 2018-2022 Lucas Frérot"
 __license__ = "SPDX-License-Identifier: MIT"
 
 from enum import Enum, unique
@@ -19,6 +17,7 @@ class CellType(Enum):
 
     See https://lorensen.github.io/VTKExamples/site/VTKFileFormats/
     """
+
     VERTEX = 1
     POLY_VERTEX = 2
     LINE = 3
@@ -90,7 +89,7 @@ NODES_PER_CELL = {
 
 
 def check_connectivity(connectivity):
-    "Sanity check for number of nodes per cell"
+    """Sanity check for number of nodes per cell."""
     for cell_type, conn in connectivity.items():
         if not isinstance(cell_type, CellType):
             cell_type = CellType(cell_type)

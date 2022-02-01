@@ -1,4 +1,4 @@
-__copyright__ = "Copyright © 2018-2021 Lucas Frérot"
+__copyright__ = "Copyright © 2018-2022 Lucas Frérot"
 __license__ = "SPDX-License-Identifier: MIT"
 
 import io
