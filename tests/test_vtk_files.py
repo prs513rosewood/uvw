@@ -163,7 +163,7 @@ def test_unstructured_grid(compression_fixture, format_fixture):
         CellType.POLY_LINE: np.array([  # Testing variable length cell type
             [0, 1],
             [1, 2, 0],
-        ]),
+        ], dtype=object),
     }
 
     grid = UnstructuredGrid(f, nodes, connectivity, compression=compress)
