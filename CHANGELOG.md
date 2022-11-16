@@ -18,6 +18,10 @@ and this project adheres to [PEP
 
 - Bug that prevented using variable size cells in `UnstructuredGrid`
 
+### Deprecated
+
+- Support for Python 3.6 removed, this is the last compatible version
+
 ## v0.4.0 -- 2021-05-04
 
 ### Added
