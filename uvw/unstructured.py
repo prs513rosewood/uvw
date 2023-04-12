@@ -64,7 +64,7 @@ NODES_PER_CELL = {
     CellType.QUAD: 4,
     CellType.TETRA: 4,
     CellType.VOXEL: 8,
-    CellType.HEXAHEDRON: 9,
+    CellType.HEXAHEDRON: 8,
     CellType.WEDGE: 6,
     CellType.PYRAMID: 5,
     CellType.PENTAGONAL_PRISM: 10,
