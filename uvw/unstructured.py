@@ -15,7 +15,7 @@ class CellType(Enum):
     """
     Enumerates the VTK cell types.
 
-    See https://lorensen.github.io/VTKExamples/site/VTKFileFormats/
+    See https://kitware.github.io/vtk-examples/site/VTKFileFormats/#legacy-file-examples
     """
 
     VERTEX = 1
