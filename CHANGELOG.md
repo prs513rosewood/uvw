@@ -6,6 +6,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [PEP
 440](https://www.python.org/dev/peps/pep-0440/).
 
+## v0.5.1 -- 2023-04-13
+
+### Fixed
+
+- Wrong number of nodes for hexahedron cell (8 instead of 9)
+
 ## v0.5.0 -- 2022-11-25
 
 ### Added
