@@ -8,6 +8,10 @@ and this project adheres to [PEP
 
 ## v0.5.1 -- 2023-04-13
 
+### Added
+
+- CI now with Github Actions
+
 ### Fixed
 
 - Wrong number of nodes for hexahedron cell (8 instead of 9)
