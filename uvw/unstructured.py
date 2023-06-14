@@ -1,6 +1,6 @@
 """Module with class for cell types in vtkUnstructuredGrid."""
 
-__copyright__ = "Copyright © 2018-2022 Lucas Frérot"
+__copyright__ = "Copyright © 2018-2023 Lucas Frérot"
 __license__ = "SPDX-License-Identifier: MIT"
 
 from enum import Enum, unique

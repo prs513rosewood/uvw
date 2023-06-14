@@ -1,6 +1,6 @@
 """Defining class (`DataArray`) used to represent Numpy arrays in XML model."""
 
-__copyright__ = "Copyright © 2018-2022 Lucas Frérot"
+__copyright__ = "Copyright © 2018-2023 Lucas Frérot"
 __license__ = "SPDX-License-Identifier: MIT"
 
 import functools
