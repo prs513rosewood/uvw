@@ -44,19 +44,20 @@ def _min_max_reduce(extents):
 class PVTKFile(vtk_files.VTKFile):
     """Generic parallel VTK file."""
 
-    def __init__(self, filename, pfiletype, **kwargs):
+    def __init__(self, filename, pfiletype, comm=None, **kwargs):
         """
         Create a generic VTK file.
 
         :param filename: name of file (cannot be file handle)
-        :param filetype: VTK format of file
+        :param pfiletype: VTK format of file
+        :param comm: MPI communicator (default: MPI.COMM_WORLD)
         :param **kwargs: parameters forwarded to Writer
         """
         _check_file_descriptor(filename)
         filename = str(filename)  # Ensure we have a string
         self.pfilename = filename
         self.pfiletype = pfiletype
-        self.comm = MPI.COMM_WORLD
+        self.comm = MPI.COMM_WORLD if comm is None else comm
         self.rank = self.comm.Get_rank()
 
         # Construct name of piece file
@@ -104,15 +105,16 @@ class PImageData(PVTKFile, vtk_files.ImageData):
 
     parent = vtk_files.ImageData
 
-    def __init__(self, filename, ranges, points, offsets, **kwargs):
+    def __init__(self, filename, ranges, points, offsets, comm=None, **kwargs):
         """
         Init an ImageData file (regular orthogonal grid).
 
         :param filename: name of file or file handle
         :param ranges: list of pairs for coordinate ranges
         :param points: list of number of points
+        :param comm: MPI communicator (default: MPI.COMM_WORLD)
         """
-        PVTKFile.__init__(self, filename, 'PImageData', **kwargs)
+        PVTKFile.__init__(self, filename, 'PImageData', comm=comm, **kwargs)
         self.parent.__init__(
             self,
             self.piece_name_template.format(rank=self.rank),
@@ -163,15 +165,17 @@ class PRectilinearGrid(PVTKFile, vtk_files.RectilinearGrid):
 
     parent = vtk_files.RectilinearGrid
 
-    def __init__(self, filename, coordinates, offsets, **kwargs):
+    def __init__(self, filename, coordinates, offsets, comm=None, **kwargs):
         """
         Init the parallel counterpart of a RectilinearGrid file.
 
         :param filename: name of file or file handle
         :param coordinates: list of coordinate arrays for this rank
         :param offset: offset in global dataset for this rank
+        :param comm: MPI communicator (default: MPI.COMM_WORLD)
         """
-        PVTKFile.__init__(self, filename, 'PRectilinearGrid', **kwargs)
+        PVTKFile.__init__(self, filename, 'PRectilinearGrid',
+                          comm=comm, **kwargs)
 
         # Name of piece file associated to rank
         self.parent.__init__(
