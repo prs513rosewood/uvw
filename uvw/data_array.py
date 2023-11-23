@@ -111,7 +111,7 @@ class DataArray:
         # Consistency check
         attributes = getattr(self, "attributes", None)
         if attributes is not None:
-            assert attributes["type"] == DTYPE_TO_VTK[flat_type.dtype]
+            assert attributes["type"] == DTYPE_TO_VTK[flat_data.dtype]
             assert attributes["NumberOfTuples"] == str(flat_data.size)
 
         return flat_data
