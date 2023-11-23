@@ -92,7 +92,7 @@ class DataArray:
             data_type = DTYPE_TO_VTK[flat_data.dtype]
         except KeyError:
             raise TypeError(
-                f'Array dtype {self.flat_data.dtype} is not supported by VTK')
+                f'Array dtype {flat_data.dtype} is not supported by VTK')
 
         self.attributes = {
             "Name": name,
@@ -109,7 +109,7 @@ class DataArray:
         flat_data = self.data.transpose(*self.axes).reshape(-1, order='F')
 
         # Consistency check
-        attributes = getattr(self, "attributes")
+        attributes = getattr(self, "attributes", None)
         if attributes is not None:
             assert attributes["type"] == DTYPE_TO_VTK[flat_type.dtype]
             assert attributes["NumberOfTuples"] == str(flat_data.size)
