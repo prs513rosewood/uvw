@@ -64,7 +64,7 @@ class DataArray:
         :param components_order: the order of the non-spatial axes of the array
         """
         self.data = np.asanyarray(data)
-        axes = list(range(self.data.ndim))
+        self.axes = list(range(self.data.ndim))
         spatial_axes = list(spatial_axes)
 
         if self.data.ndim < len(spatial_axes):
@@ -72,25 +72,24 @@ class DataArray:
                 'Dimensions of data smaller than space dimensions')
 
         for ax in spatial_axes:
-            axes.remove(ax)
+            self.axes.remove(ax)
 
         nb_components = functools.reduce(
-            lambda x, y: x * self.data.shape[y], axes, 1)
+            lambda x, y: x * self.data.shape[y], self.axes, 1)
 
         if components_order == 'C':
-            axes.reverse()
+            self.axes.reverse()
         elif components_order == 'F':
             pass
         else:
             raise ValueError('Unrecognized components order')
 
-        axes += spatial_axes
+        self.axes += spatial_axes
 
-        # Hopefully this is a view
-        self.flat_data = self.data.transpose(*axes).reshape(-1, order='F')
+        flat_data = self.flat_data
 
         try:
-            data_type = DTYPE_TO_VTK[self.flat_data.dtype]
+            data_type = DTYPE_TO_VTK[flat_data.dtype]
         except KeyError:
             raise TypeError(
                 f'Array dtype {self.flat_data.dtype} is not supported by VTK')
@@ -99,10 +98,23 @@ class DataArray:
             "Name": name,
             "type": data_type,
             "NumberOfComponents": str(nb_components),
-            "NumberOfTuples": str(self.flat_data.size),
+            "NumberOfTuples": str(flat_data.size),
         }
 
         self.format_str = '%d' if 'Int' in data_type else '%.18e'
+
+    @property
+    def flat_data(self):
+        """Lazy evaluation of flat array"""
+        flat_data = self.data.transpose(*self.axes).reshape(-1, order='F')
+
+        # Consistency check
+        attributes = getattr(self, "attributes")
+        if attributes is not None:
+            assert attributes["type"] == DTYPE_TO_VTK[flat_type.dtype]
+            assert attributes["NumberOfTuples"] == str(flat_data.size)
+
+        return flat_data
 
     def __str__(self) -> str:  # pragma: no cover
         """Produce string representation."""
