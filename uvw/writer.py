@@ -243,7 +243,7 @@ class Writer:
         elif isinstance(fd, io.TextIOBase):
             self.document.writexml(fd, indent="\n  ", addindent="  ")
         elif isinstance(fd, io.BufferedIOBase):
-            fd.write(self.document.toxml(encoding='UTF-8'))
+            fd.write(self.document.toprettyxml(encoding='UTF-8'))
         else:
             raise TypeError(f"Expected a path or file descriptor, got {fd}")
 
