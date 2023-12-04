@@ -6,6 +6,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [PEP
 440](https://www.python.org/dev/peps/pep-0440/).
 
+## v0.6.0 -- 2023-12-04
+
+### Added
+
+- `DataArray` now lazy-copies the underlying data at write-time. Changes to the
+  data after instantiation will now be reflected in the written file.
+
 ## v0.5.2 -- 2023-06-14
 
 ### Added
