@@ -5,7 +5,7 @@ See https://kitware.github.io/vtk-examples/site/VTKFileFormats/ for format
 description.
 """
 
-__copyright__ = "Copyright © 2018-2023 Lucas Frérot"
+__copyright__ = "Copyright © 2018-2024 Lucas Frérot"
 __license__ = "SPDX-License-Identifier: MIT"
 
 from .data_array import DataArray

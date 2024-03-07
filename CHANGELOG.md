@@ -6,6 +6,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [PEP
 440](https://www.python.org/dev/peps/pep-0440/).
 
+## v0.7.0 -- 2024-03-07
+
+### Added
+
+- Added support for rational Bézier cells (PR #8)
+
 ## v0.6.0 -- 2023-12-04
 
 ### Added

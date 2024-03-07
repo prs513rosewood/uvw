@@ -14,7 +14,7 @@ the repository home on GitHub: https://github.com/prs513rosewood/uvw
 
 __author__ = "Lucas Frérot"
 __maintainer__ = __author__
-__copyright__ = "Copyright © 2018-2023 Lucas Frérot"
+__copyright__ = "Copyright © 2018-2024 Lucas Frérot"
 __license__ = "SPDX-License-Identifier: MIT"
 
 # flake8: noqa

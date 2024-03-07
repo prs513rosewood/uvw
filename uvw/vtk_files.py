@@ -16,7 +16,7 @@ the idiomatic:
 
 """
 
-__copyright__ = "Copyright © 2018-2023 Lucas Frérot"
+__copyright__ = "Copyright © 2018-2024 Lucas Frérot"
 __license__ = "SPDX-License-Identifier: MIT"
 
 import functools
