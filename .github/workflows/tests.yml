@@ -28,10 +28,17 @@ jobs:
 
       - name: Test with pytest
         run: |
-          pytest -v --junitxml=report.xml --durations=20 tests/
+          pytest -v --junitxml=report.xml --cov --cov-report=xml --cov-config=.covrc --durations=20 tests/
 
       - name: Report test results
         uses: mikepenz/action-junit-report@v4
         if: always()
         with:
           report_paths: "**/report.xml"
+
+      - name: Report coverage results
+        uses: irongut/CodeCoverageSummary@v1.3.0
+        if: always()
+        with:
+          filename: "coverage.xml"
+          badge: true
