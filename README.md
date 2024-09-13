@@ -1,6 +1,6 @@
 UVW - Universal VTK Writer
 ==========================
-[![Build Status](https://travis-ci.com/prs513rosewood/uvw.svg?branch=master)](https://travis-ci.com/prs513rosewood/uvw)
+[![Build Status](https://github.com/prs513rosewood/uvw/actions/workflows/tests.yml/badge.svg)](https://github.com/prs513rosewood/uvw/actions/workflows/tests.yml)
 [![Coverage
 Status](https://coveralls.io/repos/github/prs513rosewood/uvw/badge.svg?branch=master)](https://coveralls.io/github/prs513rosewood/uvw?branch=master)
 [![PyPI Version](https://img.shields.io/pypi/v/uvw.svg)](https://pypi.org/project/uvw/)
