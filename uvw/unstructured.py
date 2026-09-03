@@ -50,6 +50,7 @@ class CellType(Enum):
     BIQUADRATIC_TRIANGLE = 34
     CUBIC_LINE = 35
     QUADRATIC_POLYGON = 36
+    POLYHEDRON = 42 # Polyhedron cell (consisting of polygonal faces)
     LAGRANGE_CURVE = 68
     LAGRANGE_TRIANGLE = 69
     LAGRANGE_QUADRILATERAL = 70
@@ -98,6 +99,7 @@ NODES_PER_CELL = {
     CellType.BIQUADRATIC_QUADRATIC_HEXAHEDRON: 24,
     CellType.BIQUADRATIC_TRIANGLE: 7,
     CellType.CUBIC_LINE: 4,
+    CellType.POLYHEDRON: -1,
     CellType.QUADRATIC_POLYGON: -1,
     CellType.LAGRANGE_CURVE: -1,
     CellType.LAGRANGE_TRIANGLE: -1,
@@ -121,18 +123,69 @@ def check_connectivity(connectivity):
     for cell_type, conn in connectivity.items():
         if not isinstance(cell_type, CellType):
             cell_type = CellType(cell_type)
-        if not isinstance(conn, np.ndarray):
-            raise TypeError("Connectivity needs to be of type numpy.ndarray")
+        if not (isinstance(conn, np.ndarray) or isinstance(conn,list)): # question : wouldn't a list of list be acceptable ?
+            raise TypeError("Connectivity needs to be of type numpy.ndarray or a list of numpy.ndarray")
 
-        int_types = {
-            dtype for dtype, label in DTYPE_TO_VTK.items() if 'Int' in label
-        }
+        # NB : here it is not clear to me how variable size cells are dealt with...
+        
+        # int_types = {
+        #     dtype for dtype, label in DTYPE_TO_VTK.items() if 'Int' in label
+        # }
 
-        if conn.dtype not in int_types | {np.dtype(object)}:
-            raise TypeError("Connectivity dtype needs to be an integer type or"
-                            "an object type for variable size cells")
+        # if conn.dtype not in int_types | {np.dtype(object)}:
+        #     raise TypeError("Connectivity dtype needs to be an integer type or"
+        #                    "an object type for variable size cells")
+
         nnodes = NODES_PER_CELL[cell_type]
 
-        if nnodes != -1 and nnodes != conn.shape[1]:
+        if nnodes != -1 :
+            if nnodes != np.array(conn).shape[1]: 
+                return False
+    return True
+
+
+# utility function for polyhedra faces
+def faces_list_to_polyhedra(cells_faces):
+    """
+        Returns connectivity and a list containing a flat representation of faces for each cell
+
+        List representation of faces: cells_faces[cell_index][face_index]=[vertex_0, vertex_1, ...]
+        
+        Flat representation of faces for one cell : 
+        flat_faces[cell_index] = [number of faces, number_of_vertex_first_face, vertex_0, vertex_1, ..., number_of_vertex_second_face, vertex_0, vertex_1,...]
+        
+        :param cells_faces: list(cells) of list(faces) of array of point_ids
+        :return: tuple(connectivity, flat_faces)
+            Where
+            connectivity is a list of arrays with the point ids for each cell
+            flat_faces is a list of arrays with the flat description of faces for each cell
+    """
+
+    def flatten_list_of_list(list_of_list):
+        return [x for xs in list_of_list for x in xs]
+    
+    connectivity = []    
+    faces = []
+
+    for cell_faces in cells_faces:
+
+        # vtk representation of a face : number_of_vertex, vertex_0, vertex_1, ...
+        vtk_faces = [
+            [
+                len(face),  # Nombre de sommets 
+                *(face) # Indices sommets
+            ]
+            for face in cell_faces
+        ]
+        # vtk representation of a cell : number_of_faces, face_0, face_1, ...
+        vtk_cell = [len(cell_faces), *flatten_list_of_list(vtk_faces)]
+        faces.append(np.asarray(vtk_cell))
+
+        # unique vertices for the cell connectivity
+        face_vertex = np.unique(np.asarray(flatten_list_of_list(cell_faces)))
+        connectivity.append(face_vertex)
+
+    return {CellType.POLYHEDRON:connectivity}, faces
+
             return False
     return True
