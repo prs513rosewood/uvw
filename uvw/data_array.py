@@ -98,7 +98,7 @@ class DataArray:
             "Name": name,
             "type": data_type,
             "NumberOfComponents": str(nb_components),
-            "NumberOfTuples": str(flat_data.size),
+            "NumberOfTuples": str(len(self.data)),
         }
 
         self.format_str = '%d' if 'Int' in data_type else '%.18e'
