@@ -25,11 +25,11 @@ import numpy as np
 
 from . import writer
 from .data_array import DataArray
-from .unstructured import CellType, check_connectivity
+from .unstructured import CellType, check_connectivity, faces_list_to_polyhedra
 
 
 def _make_3darray(points):
-    """Complete missing coordinates to get 3d points."""
+    """Complete missing coordinates (with zeros) to get 3d points."""
     if points.shape[1] == 3:
         return points
 
@@ -290,21 +290,32 @@ class StructuredGrid(VTKFile):
             DataArray(points, [0], 'points'), vtk_format='append',
         )
 
-
 class UnstructuredGrid(VTKFile):
     """VTK Unstructured grid (data on nodes + connectivity)."""
 
     def __init__(self,
                  filename: VTKFile._FileDescriptor,
                  nodes: np.ndarray,
-                 connectivity: ts.Mapping[int, np.ndarray], **kwargs):
+                 connectivity: ts.Mapping[int, ts.Union[np.ndarray,list[np.ndarray]]], 
+                 **kwargs):
         """
         Init an UnstructuredGrid file (mesh with connectivity).
+        See function faces_list_to_polyhedra to build flat cell faces
 
         :param filename: name of file or file handle
         :param nodes: 2D numpy array of node coordinates
-        :param connectivity: dict with arrays for each cell type
+        :param connectivity: dict with either arrays for each cell type or list of arrays (case polyhedra, with variable size connectivity)
+        :param faces: optional, for polyhedra only, list(cells) of list(faces) of array of point_ids
         """
+        
+        # extract and store faces from kwargs if it exists
+        faces = kwargs.pop('faces', None)
+        polyhedra = False
+        if faces is not None :
+            polyhedra = True
+            connectivity_polyhedra, flat_faces_polyhedra = faces_list_to_polyhedra(faces)
+            connectivity = connectivity_polyhedra | connectivity # keeps polyhedra connectivity as given in in inputs if given, else adds it in first position
+                
         VTKFile.__init__(self, filename, 'UnstructuredGrid', **kwargs)
 
         if nodes.ndim != 2:
@@ -331,18 +342,19 @@ class UnstructuredGrid(VTKFile):
 
         int32 = np.dtype('i4')
 
+        # Flattening the connectivities for each element type
         flat_connectivity = np.empty(
             sum(len(cell) for x in connectivity.values() for cell in x),
             dtype=int32,
         )
 
-        # Flattening the connectivities for each element type
         offset = 0
-        for conn in connectivity.values():
+        for conn in connectivity.values(): 
             for cell in conn:
                 flat_connectivity[offset:offset+len(cell)] = cell
                 offset += len(cell)
 
+        # Building offsets data
         offsets = np.empty(ncells, dtype=int32)
 
         offset, index = 0, 0
@@ -352,21 +364,57 @@ class UnstructuredGrid(VTKFile):
                 offsets[index] = offset
                 index += 1
 
-        types = np.empty(ncells, dtype=int32)
+        types = np.empty(ncells, dtype=int32) 
 
         offset = 0
         for k, conn in connectivity.items():
-            if isinstance(k, CellType):
+            if isinstance(k, CellType): 
                 k = k.value
             types[offset:offset+len(conn)] = k
-            offset += len(conn)
+            offset += len(conn)        
 
-        # Register mesh description
-        connectivity_data = {
-            "connectivity": flat_connectivity,
-            "offsets": offsets,
-            "types": types,
-        }
+        if polyhedra : 
+        
+            # Flattening the faces (each cell is already flat with vtk format)
+            flat_faces = np.empty(
+                sum(len(cell) for cell in flat_faces_polyhedra),
+                dtype=int32,
+            )
+
+            offset = 0
+            for cell in flat_faces_polyhedra:
+                flat_faces[offset:offset+len(cell)] = cell
+                offset += len(cell)
+
+            # Building faceoffsets data
+            faceoffsets = np.empty(ncells, dtype=int32)
+
+            offset, index = 0, 0
+            for (index_cell,k) in enumerate(types):
+                if k==42 :
+                    offset += len(flat_faces_polyhedra[index])
+                    index += 1
+                    faceoffsets[index_cell] = offset
+                else :
+                    faceoffsets[index_cell] = -1
+
+            # Register mesh description 
+            connectivity_data = {
+                "connectivity": flat_connectivity,
+                "offsets": offsets,
+                "types": types,
+                "faces": flat_faces,
+                "faceoffsets": faceoffsets,
+            }
+
+        else :# case no polyhedra in data
+
+            # Register mesh description 
+            connectivity_data = {
+                "connectivity": flat_connectivity,
+                "offsets": offsets,
+                "types": types,
+            }
 
         for label, array in connectivity_data.items():
             cells_component.registerDataArray(
